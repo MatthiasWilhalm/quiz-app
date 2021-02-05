@@ -64,6 +64,18 @@ module.exports = {
     }
   },
 
+  verifyWsToken: function (token) {
+    return new Promise(resolev => {
+      jwt.verify(token, TOKENDATA.secret, (err, authData) => {
+        if(err){
+          console.log("token has been expired");
+          resolev(false);
+        } else resolev(true);
+      });
+    });
+
+  },
+
   getUser: function(token) {
     const user = jwt.decode(token.split(' ')[1]);
     return user.user;

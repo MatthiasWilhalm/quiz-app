@@ -1,6 +1,5 @@
-import { w3cwebsocket as W3CWebSocket } from "websocket";
+import SocketCommunication from "../std/SocketCommunication";
 
-const client = new W3CWebSocket('ws://127.0.0.1:3001');
 var baseURL = "http://localhost:3001";
 
 
@@ -32,23 +31,15 @@ export function setSessionId(id) {
 }
 
 export function getSessionId() {
-    sessionStorage.getItem('sessionId');
+    return sessionStorage.getItem('sessionId');
 }
 
-export function getNewSessionId() {
-    return new Promise(resolve => {
-        client.onopen = () => {
-            console.log('WebSocket Client Connected');
-          };
-          client.onmessage = (message) => {
-            resolve(message);
-          };
-    });
-
+export function login(client, name, pwd) {
+    client.send(new SocketCommunication('login', getSessionId(), getToken(), {name: name, pwd: pwd}).getMsg());
 }
 
-export function login(name, pwd) {
-    client.send(JSON.stringify({type: "login", id: getSessionId(), data: {name: name, pwd: pwd}}));
+export function checkAccess(client) {
+    client.send(new SocketCommunication('sec', getSessionId(), getToken(), "hi").getMsg());
 }
 
 

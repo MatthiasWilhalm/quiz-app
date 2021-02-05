@@ -40,9 +40,13 @@ mong.connect(
     addExUser: function() {
         console.log("add");
         return new Promise(resolve => {
-            bcrypt.hash(usergroup.pwd, saltRounds ,function(err, hash) {
-                User.create({name: 'Bob', pwd: hash}).then(data => resolve(0));
-            }).then(data => resolve(0));
+            bcrypt.hash('123456', saltRounds ,function(err, hash) {
+                let u = new User({name: 'Bob', pwd: hash});
+                u.save((err, data) => {
+                    if(err) resolve(-1);
+                    else resolve(0);
+                });
+            });
         });
     }
   }

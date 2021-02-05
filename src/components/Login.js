@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { login } from '../tools/connection';
+import { checkAccess, login } from '../tools/connection';
 
 export class Login extends Component {
     constructor(props) {
@@ -15,7 +15,11 @@ export class Login extends Component {
     }
 
     commit = () => {
-        login(this.state.name, this.state.pwd);
+        login(this.props.client ,this.state.name, this.state.pwd);
+    }
+
+    check = () => {
+        checkAccess(this.props.client);
     }
 
     render() {
@@ -24,6 +28,7 @@ export class Login extends Component {
                 <input placeholder="Name" value={this.state.name} id="name" onChange={this.update}></input>
                 <input placeholder="Password" value={this.state.pwd} id="pwd" onChange={this.update}></input>
                 <button onClick={this.commit}>Send</button>
+                <button onClick={this.check}>Check</button>
             </div>
         )
     }
