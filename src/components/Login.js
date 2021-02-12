@@ -1,37 +1,35 @@
-import React, { Component } from 'react'
+import React, { Component, useEffect, useState } from 'react'
 import { checkAccess, login } from '../tools/connection';
 
-export class Login extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            name: '',
-            pwd: ''
-        }
+const Login = ({send, redirect}) => {
+    var [name, setName] = useState('');
+    var [pwd, setPwd] = useState('');
+
+    const update = e => {
+        if(e.target.id==='name')
+            setName(e.target.value);
+        else if (e.target.id==='pwd')
+            setPwd(e.target.value);
     }
 
-    update = e => {
-        this.setState({[e.target.id]: e.target.value});
+    const commit = () => {
+        send('login', JSON.stringify({name: name, pwd: pwd}));
+        //login(send, name, pwd);
     }
 
-    commit = () => {
-        login(this.props.client ,this.state.name, this.state.pwd);
+    const check = () => {
+        send('sec',"hi");
+        //checkAccess(client.current);
     }
 
-    check = () => {
-        checkAccess(this.props.client);
-    }
-
-    render() {
-        return (
-            <div>
-                <input placeholder="Name" value={this.state.name} id="name" onChange={this.update}></input>
-                <input placeholder="Password" value={this.state.pwd} id="pwd" onChange={this.update}></input>
-                <button onClick={this.commit}>Send</button>
-                <button onClick={this.check}>Check</button>
-            </div>
-        )
-    }
+    return (
+        <div>
+            <input placeholder="Name" value={name} id="name" onChange={update}></input>
+            <input placeholder="Password" value={pwd} id="pwd" onChange={update}></input>
+            <button onClick={commit}>Send</button>
+            <button onClick={check}>Check</button>
+        </div>
+    )
 }
 
 export default Login

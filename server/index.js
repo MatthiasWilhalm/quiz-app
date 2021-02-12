@@ -46,6 +46,7 @@ wsServer.on('request', function(request) {
         } else {
           s = SocketCommunication("login", msg.id, '', false);
         }
+        Array.from(clients.keys()).forEach(a => console.log(a));
         clients.get(msg.id).send(s.getMsg());
       });
     //request that needs a token to access

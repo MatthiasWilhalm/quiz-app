@@ -14,6 +14,10 @@ export class SocketCommunication {
         return JSON.stringify({type: this.type, id: this.id, token: this.token, data: this.data});
     }
 
+    getJSON() {
+        return {type: this.type, id: this.id, token: this.token, data: this.data};
+    }
+
     /**
      * 
      * @param {string} s string that has been received via websocket

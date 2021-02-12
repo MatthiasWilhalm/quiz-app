@@ -34,8 +34,9 @@ export function getSessionId() {
     return sessionStorage.getItem('sessionId');
 }
 
-export function login(client, name, pwd) {
-    client.send(new SocketCommunication('login', getSessionId(), getToken(), {name: name, pwd: pwd}).getMsg());
+export function login(send, name, pwd) {
+    send('login', {name: name, pwd: pwd});
+    //client.send(new SocketCommunication('login', getSessionId(), getToken(), {name: name, pwd: pwd}).getMsg());
 }
 
 export function checkAccess(client) {
