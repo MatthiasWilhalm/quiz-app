@@ -1,9 +1,13 @@
-import React, { Component, useEffect, useState } from 'react'
+import React, { Component, forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { useHistory } from 'react-router-dom';
 import { checkAccess, login } from '../tools/connection';
 
-const Login = ({send, redirect}) => {
+const Login = forwardRef ((props, ref) => {
+    const history = useHistory();
     var [name, setName] = useState('');
     var [pwd, setPwd] = useState('');
+
+    console.log(ref);
 
     const update = e => {
         if(e.target.id==='name')
@@ -12,24 +16,31 @@ const Login = ({send, redirect}) => {
             setPwd(e.target.value);
     }
 
+    useImperativeHandle(ref, () => ({
+        goHome () {
+            history.push('/home');
+        }
+    }));
+
     const commit = () => {
-        send('login', JSON.stringify({name: name, pwd: pwd}));
+        props.send('login', {name: name, pwd: pwd});
         //login(send, name, pwd);
     }
 
     const check = () => {
-        send('sec',"hi");
+        props.send('sec',"hi");
         //checkAccess(client.current);
     }
 
     return (
         <div>
+            <h1>Login</h1>
             <input placeholder="Name" value={name} id="name" onChange={update}></input>
             <input placeholder="Password" value={pwd} id="pwd" onChange={update}></input>
             <button onClick={commit}>Send</button>
             <button onClick={check}>Check</button>
         </div>
     )
-}
+});
 
 export default Login

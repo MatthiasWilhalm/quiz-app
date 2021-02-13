@@ -1,4 +1,5 @@
 import SocketCommunication from "../std/SocketCommunication";
+import jwt from 'jsonwebtoken';
 
 var baseURL = "http://localhost:3001";
 
@@ -32,6 +33,16 @@ export function setSessionId(id) {
 
 export function getSessionId() {
     return sessionStorage.getItem('sessionId');
+}
+
+/**
+ * Extrahiert den gesammten User aus dem Token
+ * @returns {Object} user
+ */
+export function getUser() {
+    let token = localStorage.getItem('token');
+    if(token===null || token===undefined) return null;
+    return jwt.decode(token).user;
 }
 
 export function login(send, name, pwd) {

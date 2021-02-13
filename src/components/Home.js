@@ -1,43 +1,38 @@
-import React, { Component } from 'react';
+import React, { Component, forwardRef, useImperativeHandle } from 'react';
 import {
     BrowserRouter as Router,
     Switch,
-    Route
+    Route,
+    Link,
+    useHistory
 } from "react-router-dom";
-import { getToken, login } from '../tools/connection';
+import { getUser } from '../tools/connection';
 
-/**
- * Hauptsächlich für das Routen zuständig
- */
-export class Home extends Component {
-    constructor(props) {
-        super(props);
+
+const Home = forwardRef((props, ref) => {
+    const history = useHistory();
+
+    const createGame = () => {
+        props.send('creategame', null);
     }
 
-    componentDidMount() {
-        let t = getToken();
-        if(t) {
-            
+    useImperativeHandle(ref, () => ({
+        goGame (id) {
+            history.push('/game/'+id);
         }
-    }
+    }));
 
-
-    render() {
-        return (
+    return (
+        <div>
             <div>
-                <div>
-                    Hello
-                </div>
-                <Router>
-                    <div>
-                        <Switch>
-
-                        </Switch>
-                    </div>
-                </Router>
+                <h1>Home</h1>
+                <p className="debug">{"Name: " + getUser().name}</p>
+                <p className="debug">{"ID: " + getUser().id}</p>
             </div>
-        )
-    }
-}
+            <button onClick={createGame}>New Game</button>
+            <button>Join Game</button>
+        </div>
+    )
+});
 
 export default Home
