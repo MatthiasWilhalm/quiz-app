@@ -31,12 +31,14 @@ wsServer.on('request', function (request) {
   console.log((new Date()) + ' Recieved a new connection from origin ' + request.origin + '.');
   // You can rewrite this part of the code to accept only the requests from allowed origin
   const connection = request.accept(null, request.origin);
-  clients.set(userID, connection);
+  let client = {game: null, socket: connection, user: {id: null, name: ''}};
+  clients.set(userID, client);
   console.log(clients.size+" clients connected");
 
   connection.on('message', req => {
     let msg = SocketCommunication();
     msg.set(req.utf8Data);
+    resyncClientData(msg);
     //login request
     if (msg.type === 'login') {
       //console.log(msg.data);
@@ -48,8 +50,13 @@ wsServer.on('request', function (request) {
         } else {
           s = SocketCommunication("login", msg.id, '', false);
         }
-        Array.from(clients.keys()).forEach(a => console.log(a));
-        clients.get(msg.id).send(s.getMsg());
+        let c = clients.get(msg.id);
+        if(c!==undefined) {
+          c.user.id = am.getUser(token).id;
+          c.user.name = am.getUser(token).name;
+        }
+        //Array.from(clients.keys()).forEach(a => console.log(a));
+        sendToClient(s)?'':console.log("no client with ID: "+msg.id);
       });
       //request that needs a token to access
     } else {
@@ -59,7 +66,7 @@ wsServer.on('request', function (request) {
           handleRequest(msg);
         else {
           msg.data = "access denied";
-          clients.get(msg.id).send(msg.getMsg());
+          sendToClient(msg)?'':console.log("no client with ID: "+msg.id);
         }
       });
     }
@@ -86,6 +93,19 @@ function login(name, pwd, id) {
 }
 
 /**
+ * Takes the tokendata and resyncs it with the clients array
+ * @param {SocketCommunication} msg 
+ */
+function resyncClientData(msg) {
+  let c = clients.get(msg.id);
+  if(msg.token!=='' && c!==undefined) {
+    let user = am.getUser(msg.token);
+    c.user.id = user.id;
+    c.user.name = user.name;
+  }
+} 
+
+/**
  * 
  * @param {SocketCommunication} msg 
  */
@@ -97,8 +117,8 @@ function handleRequest(msg) {
     case 'creategame':
       createGame(msg);
       break;
-    case 'getgame':
-      getGame(msg);
+    case 'joingame':
+      joinGame(msg);
       break;
     //Add here new types
     default:
@@ -131,17 +151,56 @@ function createGame(msg) {
  * @param {SocketCommunication} msg 
  * @param {String} id 
  */
-function getGame(msg) {
+function joinGame(msg) {
   dbc.getGame(msg.data.id).then(data => {
+    let c = clients.get(msg.id);
+    if(c!==undefined) {
+      c.game = data._id;
+      console.log("player w/ sessionID "+msg.id+" joined game "+clients.get(msg.id).game);
+      updateGamePlayerList(clients.get(msg.id).game);
+    } else {
+      console.log("client couldn't join to game "+data._id);
+    }
     msg.data = data;
     sendToClient(msg)?'':console.log("no client with ID: "+msg.id);
   });
 }
 
+function leaveGame(msg) {
+  let c = clients.get(msg.id);
+  if(c!==undefined) {
+    c.game = null;
+    updateGamePlayerList(clients.get(msg.id).game);
+  }
+}
+
+/**
+ * 
+ * @param {String} userID 
+ * @param {String} gameID 
+ */
+function updateGamePlayerList(gameID) {
+  let list = [];
+  clients.forEach(c => {
+    if(c.game === gameID) {
+      list.push({id: c.user.id, name: c.user.name});
+    }
+  });
+  let s = SocketCommunication('updateplayerlist', '', '', list);
+  sendToAllInGame(gameID, s);
+}
+
 function sendToClient(msg) {
   let c = clients.get(msg.id);
-  if(c!==undefined) c.send(msg.getMsg());
+  if(c!==undefined) c.socket.send(msg.getMsg());
   else return false;
   return true;
+}
+
+function sendToAllInGame(gameID, msg) {
+  clients.forEach(c => {
+    if(c.game===gameID)
+      c.socket.send(msg.getMsg());
+  });
 }
 

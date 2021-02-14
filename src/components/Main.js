@@ -57,9 +57,14 @@ const Main = () => {
                     console.log("reseaved new game");
                     createGameChild.current.goGame(data.data._id);
                     break;
-                case 'getgame':
+                case 'joingame':
                     console.log("getting game");
                     getGameChild.current.loadGame(data.data);
+                    break;
+                case 'updateplayerlist':
+                    console.log('new player joined game');
+                    getGameChild.current.updatePlayerList(data.data);
+                    break;
                 default:
                     console.log(data);
                     break;

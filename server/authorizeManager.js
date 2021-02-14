@@ -77,18 +77,8 @@ module.exports = {
   },
 
   getUser: function(token) {
-    const user = jwt.decode(token.split(' ')[1]);
+    const user = jwt.decode(token);
     return user.user;
-  },
-
-  /**
-   * Liefert id von User im Token
-   * @param {Request} req 
-   * @returns {String} UserID
-   */
-  getUserId: function(req){
-      const user = jwt.decode(req.headers['authorization'].split(' ')[1]);
-      //return user.user.frn_id;
-      return user.user.id;
   }
+
 }
