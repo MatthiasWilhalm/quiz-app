@@ -1,9 +1,10 @@
 import queryString from 'query-string';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { getUser } from '../tools/connection';
 
 const Game = forwardRef((props, ref) => {
-    const [game, setGame] = useState('');
+    const [game, setGame] = useState(null);
     const [player, setPlayer] = useState([]);
     const params = useParams();
 
@@ -23,8 +24,13 @@ const Game = forwardRef((props, ref) => {
     }));
 
     useEffect(() => {
-        getGame();
+        //TODO wait until ws has been connected
+        setTimeout(getGame, 500);
     }, []);
+
+    const isMod = () => {
+        return game!==null && game.mod === getUser().id;
+    }
 
     return (
         <div>
@@ -34,6 +40,7 @@ const Game = forwardRef((props, ref) => {
                 {player.map(p => <li>{p.name}</li>)}
             </ul>
             <button onClick={getGame}>reload</button>
+            {isMod()?<button>Start game</button>:''}
         </div>
     );
 });

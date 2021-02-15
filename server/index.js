@@ -28,67 +28,75 @@ const getUniqueID = () => {
 
 wsServer.on('request', function (request) {
   var userID = getUniqueID();
-  console.log((new Date()) + ' Recieved a new connection from origin ' + request.origin + '.');
+  console.log('Recieved a new connection.');
   // You can rewrite this part of the code to accept only the requests from allowed origin
   const connection = request.accept(null, request.origin);
-  let client = {game: null, socket: connection, user: {id: null, name: ''}};
-  clients.set(userID, client);
-  console.log(clients.size+" clients connected");
 
-  connection.on('message', req => {
-    let msg = SocketCommunication();
-    msg.set(req.utf8Data);
-    resyncClientData(msg);
-    //login request
-    if (msg.type === 'login') {
-      //console.log(msg.data);
-      //console.log(msg.data.name+" : "+msg.data.pwd + " : " + msg.id);
-      login(msg.data.name, msg.data.pwd, msg.id).then(token => {
-        let s;
-        if (token !== -1 && token !== -2) {
-          s = SocketCommunication("login", msg.id, token, true);
-        } else {
-          s = SocketCommunication("login", msg.id, '', false);
-        }
-        let c = clients.get(msg.id);
-        if(c!==undefined) {
-          c.user.id = am.getUser(token).id;
-          c.user.name = am.getUser(token).name;
-        }
-        //Array.from(clients.keys()).forEach(a => console.log(a));
-        sendToClient(s)?'':console.log("no client with ID: "+msg.id);
-      });
-      //request that needs a token to access
-    } else {
-      am.verifyWsToken(msg.token).then(b => {
-        //b===true if we have acccess
-        if (b)
-          handleRequest(msg);
-        else {
-          msg.data = "access denied";
-          sendToClient(msg)?'':console.log("no client with ID: "+msg.id);
-        }
-      });
-    }
-  });
+  //on message
+  connection.on('message', manageRequest);
 
+  //on close
   connection.on('close', () => {
-    console.log(userID+" disconnected");
+    console.log(userID + " disconnected");
     clients.delete(userID);
-    console.log(clients.size+" clients connected");
+    console.log(clients.size + " clients connected");
   });
 
+  //send back the sessionID
   connection.send(SocketCommunication("sessionId", userID, '', userID).getMsg());
+
+  //store new connection in map 
+  let client = { game: null, socket: connection, user: { id: null, name: '' } };
+  clients.set(userID, client);
+  console.log(clients.size + " clients connected");
+
   console.log('connected: ' + userID);
 });
 
-function login(name, pwd, id) {
-  return new Promise(resolve => {
-    dbc.login(name, pwd).then(data => {
-      if (data !== -1 && data !== -2) {
-        resolve(am.getUserToken(data));
-      } else resolve(data);
+/**
+ * manages all the incomming ws-requests
+ * @param {import('websocket').IMessage} req 
+ */
+function manageRequest(req) {
+
+  let msg = SocketCommunication();
+  msg.set(req.utf8Data);
+
+  resyncClientData(msg);
+
+  //login request
+  if (msg.type === 'login') {
+    //console.log(msg.data.name+" : "+msg.data.pwd + " : " + msg.id);
+    console.log('try to loggin in');
+    login(msg);
+    //request that needs a token to access
+  } else {
+    am.verifyWsToken(msg.token).then(b => {
+      //b===true we have access
+      if (b)
+        handleRequest(msg);
+      else {
+        msg.data = "access denied";
+        sendToClient(msg) ? '' : console.log("no client with ID: " + msg.id);
+      }
     });
+  }
+}
+
+/**
+ * trys to find name and pwd in database. if so it generates a token and retuns it to the client
+ * @param {SocketCommunication} msg 
+ */
+function login(msg) {
+  dbc.login(msg.data.name, msg.data.pwd).then(async data => {
+    let s;
+    if (data !== -1 && data !== -2) {
+      s = SocketCommunication("login", msg.id, await am.getUserToken(data), true);
+    } else
+      s = SocketCommunication("login", msg.id, '', false);
+    resyncClientData(s);
+
+    sendToClient(s) ? '' : console.log("no client with ID: " + msg.id);
   });
 }
 
@@ -98,15 +106,14 @@ function login(name, pwd, id) {
  */
 function resyncClientData(msg) {
   let c = clients.get(msg.id);
-  if(msg.token!=='' && c!==undefined) {
+  if (msg.token !== '' && msg.token !== null && c !== undefined) {
     let user = am.getUser(msg.token);
-    c.user.id = user.id;
-    c.user.name = user.name;
+    c.user = { id: user.id, name: user.name };
   }
-} 
+}
 
 /**
- * 
+ * handles the requests accessible via token
  * @param {SocketCommunication} msg 
  */
 function handleRequest(msg) {
@@ -132,75 +139,106 @@ function handleRequest(msg) {
  */
 function checkAccess(msg) {
   msg.data = "top secret";
-  sendToClient(msg)?'':console.log("no client with ID: "+msg.id);
+  sendToClient(msg) ? '' : console.log("no client with ID: " + msg.id);
 }
 
 /**
- * 
+ * creates game in database and returns the new generated object
  * @param {SocketCommunication} msg 
  */
 function createGame(msg) {
-  dbc.createGame().then(data => {
+  dbc.createGame(am.getUser(msg.token).id).then(data => {
     msg.data = data;
-    sendToClient(msg)?'':console.log("no client with ID: "+msg.id);
+    sendToClient(msg) ? '' : console.log("no client with ID: " + msg.id);
   });
 }
 
 /**
- * 
+ * add user in client list to a game and sends the gameobject to the cleint
  * @param {SocketCommunication} msg 
  * @param {String} id 
  */
 function joinGame(msg) {
   dbc.getGame(msg.data.id).then(data => {
-    let c = clients.get(msg.id);
-    if(c!==undefined) {
-      c.game = data._id;
-      console.log("player w/ sessionID "+msg.id+" joined game "+clients.get(msg.id).game);
-      updateGamePlayerList(clients.get(msg.id).game);
+    if (data !== null && data !== undefined && data !== -1) {
+      let c = clients.get(msg.id);
+      if (c !== undefined) {
+        c.game = data._id;
+        console.log("player w/ sessionID " + msg.id + " joined game " + clients.get(msg.id).game);
+        updateGamePlayerList(clients.get(msg.id).game);
+      } else {
+        console.log("client couldn't join game " + data._id);
+      }
+      msg.data = data;
     } else {
-      console.log("client couldn't join to game "+data._id);
+      msg.data = null;
     }
-    msg.data = data;
-    sendToClient(msg)?'':console.log("no client with ID: "+msg.id);
+
+    sendToClient(msg) ? '' : console.log("no client with ID: " + msg.id);
   });
 }
 
+/**
+ * set current game from user in client list to null
+ * @param {SocketCommunication} msg 
+ */
 function leaveGame(msg) {
   let c = clients.get(msg.id);
-  if(c!==undefined) {
+  if (c !== undefined) {
     c.game = null;
     updateGamePlayerList(clients.get(msg.id).game);
   }
 }
 
 /**
- * 
+ * sends to all users in game with id gameID the current playerlist {id, name}
  * @param {String} userID 
- * @param {String} gameID 
  */
 function updateGamePlayerList(gameID) {
   let list = [];
+  let debug_i = 0;
   clients.forEach(c => {
-    if(c.game === gameID) {
-      list.push({id: c.user.id, name: c.user.name});
+    //console.log(typeof gameID);
+    //console.log(c.game.trim() == gameID.trim());
+    if (c.game+'' === gameID+'') {
+      debug_i++;
+      list.push({ id: c.user.id, name: c.user.name });
     }
   });
+  console.log("updateing playerlist for " + debug_i + " players; tot: " + clients.size);
   let s = SocketCommunication('updateplayerlist', '', '', list);
   sendToAllInGame(gameID, s);
 }
 
+/**
+ * send msg to client with id msg.id in client list
+ * @param {SocketCommunication} msg 
+ */
 function sendToClient(msg) {
+  debugListClients();
   let c = clients.get(msg.id);
-  if(c!==undefined) c.socket.send(msg.getMsg());
+  if (c !== undefined) c.socket.send(msg.getMsg());
   else return false;
   return true;
 }
 
+/**
+ * send msg to all user in game with id gameID
+ * @param {String} gameID 
+ * @param {SocketCommunication} msg 
+ */
 function sendToAllInGame(gameID, msg) {
   clients.forEach(c => {
-    if(c.game===gameID)
+    if (c.game+'' === gameID+'')
       c.socket.send(msg.getMsg());
   });
 }
 
+function debugListClients() {
+  Array.from(clients.keys()).forEach(a => {
+    if(clients.get(a)!==undefined)
+      console.log('sid: '+a+' game: '+clients.get(a).game+' user: '+clients.get(a).user.name);
+    //console.log('sid: '+a);
+
+  });
+}

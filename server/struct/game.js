@@ -1,14 +1,18 @@
 const mong = require('mongoose');
 const Schema = mong.Schema;
 
-const Points = new Schema({
+const PlayerInRound = new Schema({
     player: {
         type: mong.Schema.ObjectId,
         ref: 'user'
     },
-    points: {
-        type: Number,
-        default: 0
+    type: {
+        type: String,
+        enum: ['spec', 'ask']
+    },
+    wasRight: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -18,7 +22,7 @@ const Round = new Schema({
         ref: 'question',
         default: null
     },
-    playerpoints: [Points]
+    playerInRound: [PlayerInRound]
 });
 
 const GameSchema = new Schema({
@@ -29,6 +33,11 @@ const GameSchema = new Schema({
             "lobby", "question", "answer", "end", "done"
         ],
         default: "lobby"
+    },
+    mod: {
+        type: mong.Schema.ObjectId,
+        ref: 'user',
+        default: null
     }
 });
 

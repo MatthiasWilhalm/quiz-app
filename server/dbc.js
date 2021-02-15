@@ -38,9 +38,10 @@ module.exports = {
         });
     },
 
-    createGame: function () {
+    createGame: function (modId) {
         return new Promise(resolve => {
             let game = new Game();
+            game.mod = modId;
             game.save((err, data) => {
                 if(err) resolve(-1);
                 else resolve(data);
@@ -59,6 +60,17 @@ module.exports = {
             });
         });
     },
+    
+    openRound: function(gameID, player) {
+        return new Promise(resolve => {
+            Game.findOne({_id: gameID}).exec((err, game) => {
+                if(err) resolve(-1);
+                else {
+                    game.rounds.push(new ); //TODO runden erstellen
+                }
+            });
+        });
+    },
 
 
     /**
@@ -68,7 +80,7 @@ module.exports = {
         console.log("add");
         return new Promise(resolve => {
             bcrypt.hash('123456', saltRounds, function (err, hash) {
-                let u = new User({ name: 'Bob', pwd: hash });
+                let u = new User({ name: 'Emma', pwd: hash });
                 u.save((err, data) => {
                     if (err) resolve(-1);
                     else resolve(0);

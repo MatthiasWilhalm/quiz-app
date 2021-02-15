@@ -11,7 +11,7 @@ module.exports = {
   /**
    * Generiert einen neuen Token
    * @param {Object} user 
-   * @returns {String} new token
+   * @returns {Promise<String>} new token
    */
   getUserToken: function (user) {
     return new Promise(resolve => {
@@ -77,6 +77,8 @@ module.exports = {
   },
 
   getUser: function(token) {
+    if(token===undefined || token===null || token==='')
+      return null;
     const user = jwt.decode(token);
     return user.user;
   }
