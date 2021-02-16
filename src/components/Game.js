@@ -12,6 +12,10 @@ const Game = forwardRef((props, ref) => {
         props.send('joingame', {id: params.id});
     }
 
+    const addRound = () => {
+        props.send('addround', null);
+    }
+
     useImperativeHandle(ref, () => ({
         loadGame (game) {
             setGame(game);
@@ -40,7 +44,7 @@ const Game = forwardRef((props, ref) => {
                 {player.map(p => <li>{p.name}</li>)}
             </ul>
             <button onClick={getGame}>reload</button>
-            {isMod()?<button>Start game</button>:''}
+            {isMod()?<button onClick={addRound}>Start game</button>:''}
         </div>
     );
 });

@@ -38,7 +38,13 @@ wsServer.on('request', function (request) {
   //on close
   connection.on('close', () => {
     console.log(userID + " disconnected");
+    let c = clients.get(userID);
+    let g = '';
+    if(c!==undefined && c.game!==null)
+      g = c.game;
     clients.delete(userID);
+    if(g!=='')
+      updateGamePlayerList(g);
     console.log(clients.size + " clients connected");
   });
 
@@ -127,6 +133,9 @@ function handleRequest(msg) {
     case 'joingame':
       joinGame(msg);
       break;
+    case 'addround':
+      addRound(msg);
+      break;
     //Add here new types
     default:
       break;
@@ -173,7 +182,6 @@ function joinGame(msg) {
     } else {
       msg.data = null;
     }
-
     sendToClient(msg) ? '' : console.log("no client with ID: " + msg.id);
   });
 }
@@ -185,9 +193,42 @@ function joinGame(msg) {
 function leaveGame(msg) {
   let c = clients.get(msg.id);
   if (c !== undefined) {
+    if(c.game!==null && c.game!==undefined)
+      updateGamePlayerList(c.game);
     c.game = null;
-    updateGamePlayerList(clients.get(msg.id).game);
   }
+}
+
+/**
+ * Adds new Round for Game where player is in it
+ * @param {SocketCommunication} msg 
+ */
+function addRound(msg) {
+  let client = clients.get(msg.id);
+  if(client!==undefined && client.game!==null) {
+    let list = [];
+    clients.forEach(c => {
+      if (c.game+'' === client.game+'') {
+        list.push({player: c.user.id});
+      }
+    });
+    dbc.openRound(client.game+'', list).then(
+      data => {
+        console.log(data?"error in creating round":"created new round");
+        sendGameUpdate(client.game);
+      }
+    );
+  }
+}
+
+/**
+ * send the newest gameobject to all players in game 
+ * @param {String} gameID 
+ */
+function sendGameUpdate(gameID) {
+  dbc.getGame(gameID).then(game => {
+    sendToAllInGame(gameID, SocketCommunication("updategame", '', '', game));
+  });
 }
 
 /**

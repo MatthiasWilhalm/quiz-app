@@ -61,14 +61,14 @@ module.exports = {
         });
     },
     
-    openRound: function(gameID, player) {
-        return new Promise(resolve => {
-            Game.findOne({_id: gameID}).exec((err, game) => {
-                if(err) resolve(-1);
-                else {
-                    game.rounds.push(new ); //TODO runden erstellen
-                }
-            });
+    openRound: function(gameID, players) {
+        return new Promise(async resolve => {
+            let game = await Game.findOne({_id: gameID});
+            if(game!==null) {
+                game.rounds.push({question: null, playerInRound: players});
+                game.save(() => resolve(0));
+            } else resolve(-1);
+            
         });
     },
 
