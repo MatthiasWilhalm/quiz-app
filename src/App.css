@@ -1,4 +1,115 @@
+:root {
+  --main-box-shadow: 3px 4px 4px -1px rgba(0,0,0,0.23);
+  --select-color: rgb(100, 189, 224);
+  --default-color: white;
+  --border-color: rgb(170, 170, 170);
+  --default-border-radius: 5px;
+}
+
 .debug {
   margin-left: 5px;
   font-size: 7pt;
+}
+
+button {
+  min-width: 100px;
+  min-height: 35px;
+  background-color: var(--default-color);
+  border: 0;
+  border-radius: var(--default-border-radius);
+  font-size: 15pt;
+  box-shadow: var(--main-box-shadow);
+  transition: background-color 100ms ease-in-out;
+}
+
+button:hover {
+  background-color: var(--select-color);
+}
+
+ul {
+  list-style-type: none;
+}
+
+li {
+  min-height: 30px;
+  width: 100%;
+  border: 1px solid var(--border-color);
+  background-color: var(--default-color);
+  transition: transform 100ms ease-in-out;
+  cursor: pointer;
+}
+
+li div {
+  margin-right: 5px;
+  margin-left: 5px;
+}
+
+li:first-child {
+  border-top-left-radius: var(--default-border-radius);
+  border-top-right-radius: var(--default-border-radius);
+}
+
+li:last-child {
+  border-bottom-left-radius: var(--default-border-radius);
+  border-bottom-right-radius: var(--default-border-radius);
+}
+
+li:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--main-box-shadow);
+}
+
+.selected {
+  background-color: var(--select-color);
+}
+
+.playerlist {
+  position: absolute;
+  width: 70%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.playerlist li {
+  display: grid;
+  grid-template-columns: 90% 10%;
+}
+
+.playerlist li div:last-child {
+  text-align: right;
+}
+
+.questionlist {
+  position: absolute;
+  width: 90%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+
+.buttonarray {
+  position: relative;
+}
+
+.answersbuttons {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 50% 50%;
+}
+
+.questionfield {
+  background-color: rgb(166, 166, 255);
+  font-size: 15pt;
+  padding-top: 20px;
+  min-height: 50px;
+  width: 100%;
+  text-align: center;
+}
+
+.true {
+  background-color: green;
+}
+
+.false {
+  background-color: red;
 }

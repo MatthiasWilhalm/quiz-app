@@ -6,13 +6,13 @@ const PlayerInRound = new Schema({
         type: mong.Schema.ObjectId,
         ref: 'user'
     },
-    type: {
-        type: String,
-        enum: ['spec', 'ask']
-    },
-    wasRight: {
+    ask: {
         type: Boolean,
         default: false
+    },
+    selected: { //spec: 0 = false; 1 = true // ask: answers 0-3 //-1 nothing selected
+        type: Number,
+        default: -1
     }
 });
 

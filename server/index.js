@@ -17,6 +17,7 @@ const wsServer = new webSocketServer({
   httpServer: server
 });
 
+
 // I'm maintaining all active connections in this object
 const clients = new Map();
 
@@ -136,6 +137,18 @@ function handleRequest(msg) {
     case 'addround':
       addRound(msg);
       break;
+    case 'getquestions':
+      getQuestions(msg);
+      break;
+    case 'getquestion':
+      getQuestion(msg);
+      break;
+    case 'endround':
+      endRound(msg);
+      break;
+    case 'updateroundselected':
+      updateRoundSelected(msg);
+      break;
     //Add here new types
     default:
       break;
@@ -209,15 +222,63 @@ function addRound(msg) {
     let list = [];
     clients.forEach(c => {
       if (c.game+'' === client.game+'') {
-        list.push({player: c.user.id});
+        let user = {player: c.user.id};
+        if(msg.data.player === c.user.id) //player who will be ask next
+          user.ask = true;
+        list.push(user);
       }
     });
-    dbc.openRound(client.game+'', list).then(
+    dbc.openRound(client.game+'', list, msg.data.question).then(
       data => {
         console.log(data?"error in creating round":"created new round");
         sendGameUpdate(client.game);
       }
     );
+  }
+}
+
+function endRound(msg) {
+  let client = clients.get(msg.id);
+  if(client!==undefined && client.game!==null) {
+    dbc.closeRound(client.game).then(data => {
+      sendGameUpdate(client.game);
+    });
+    
+  }
+}
+
+/**
+ * sends all questions from db to client
+ * @param {SocketCommunication} msg 
+ */
+function getQuestions(msg) {
+  dbc.getQuestions().then(questions => {
+    msg.data = questions;
+    sendToClient(msg);
+  });
+}
+
+/**
+ * sends just one spesific question
+ * @param {SocketCommunication}
+ */
+function getQuestion(msg) {
+  dbc.getQuestion(msg.data.id).then(question => {
+    msg.data = question;
+    sendToClient(msg);
+  });
+}
+
+/**
+ * saves the new selected state
+ * @param {SocketCommunication} msg 
+ */
+function updateRoundSelected(msg) {
+  let client = clients.get(msg.id);
+  if(client!==undefined && client.game!==null) {
+    dbc.updateRoundSelected(client.game, msg.data.roundID, client.user.id, msg.data.selected).then(data => {
+      sendGameUpdate(client.game);
+    });
   }
 }
 

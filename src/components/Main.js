@@ -40,33 +40,37 @@ const Main = () => {
         },
         share: true,
         onMessage: e => {
-            let data = new SocketCommunication();
-            data.set(e.data);
+            let msg = new SocketCommunication();
+            msg.set(e.data);
             //setSessionId(data.id);
-            switch (data.type) {
+            switch (msg.type) {
                 case 'sessionId':
-                    setSessionId(data.id);
+                    setSessionId(msg.id);
                     console.log(getSessionId());
                     break;
                 case 'login':
-                    console.log(data.token);
-                    addToken(data.token);
+                    console.log(msg.token);
+                    addToken(msg.token);
                     loginChild.current.goHome();
                     break;
                 case 'creategame':
                     console.log("reseaved new game");
-                    createGameChild.current.goGame(data.data._id);
+                    createGameChild.current.goGame(msg.data._id);
                     break;
                 case 'joingame':
+                case 'updategame':
                     console.log("getting game");
-                    getGameChild.current.loadGame(data.data);
+                    getGameChild.current.loadGame(msg.data);
                     break;
                 case 'updateplayerlist':
                     console.log('new player joined game');
-                    getGameChild.current.updatePlayerList(data.data);
+                    getGameChild.current.updatePlayerList(msg.data);
+                    break;
+                case 'getquestions':
+                    getGameChild.current.getQuestions(msg.data);
                     break;
                 default:
-                    console.log(data);
+                    console.log(msg);
                     break;
             }
         }
