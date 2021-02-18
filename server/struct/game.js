@@ -22,6 +22,9 @@ const Round = new Schema({
         ref: 'question',
         default: null
     },
+    order: [{
+        type: Number
+    }],
     playerInRound: [PlayerInRound]
 });
 

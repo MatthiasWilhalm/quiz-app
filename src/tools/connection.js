@@ -12,6 +12,10 @@ export function getToken() {
     return localStorage.getItem('token');
 }
 
+export function removeToken() {
+    localStorage.removeItem('token');
+}
+
 var defaultHeaders = {
     'Content-Type': 'application/json',
     'authorization': getToken()
@@ -41,7 +45,7 @@ export function getSessionId() {
  */
 export function getUser() {
     let token = localStorage.getItem('token');
-    if(token===null || token===undefined) return null;
+    if(token===null || token===undefined || token==='') return {name: '', id: ''};
     return jwt.decode(token).user;
 }
 

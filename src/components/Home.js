@@ -1,4 +1,4 @@
-import React, { Component, forwardRef, useImperativeHandle } from 'react';
+import React, { Component, forwardRef, useEffect, useImperativeHandle } from 'react';
 import {
     BrowserRouter as Router,
     Switch,
@@ -6,7 +6,7 @@ import {
     Link,
     useHistory
 } from "react-router-dom";
-import { getUser } from '../tools/connection';
+import { getUser, removeToken } from '../tools/connection';
 
 
 const Home = forwardRef((props, ref) => {
@@ -16,11 +16,23 @@ const Home = forwardRef((props, ref) => {
         props.send('creategame', null);
     }
 
+    const logout = () => {
+        removeToken();
+        history.push('/login');
+    }
+
     useImperativeHandle(ref, () => ({
         goGame (id) {
             history.push('/game/'+id);
+        },
+        goLogin() {
+            history.push('/login');
         }
     }));
+
+    useEffect(() => {
+        props.send('sec', null);
+    }, [])
 
     return (
         <div>
@@ -29,6 +41,7 @@ const Home = forwardRef((props, ref) => {
                 <p className="debug">{"Name: " + getUser().name}</p>
                 <p className="debug">{"ID: " + getUser().id}</p>
             </div>
+            <button onClick={logout}>Logout</button>
             <button onClick={createGame}>New Game</button>
             <button>Join Game</button>
         </div>

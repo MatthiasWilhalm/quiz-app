@@ -70,9 +70,9 @@ module.exports = {
         return new Promise(async resolve => {
             let game = await Game.findOne({ _id: gameID });
             if (game !== null) {
-                game.rounds.push({ question: question, playerInRound: players });
+                game.rounds.push({ question: question, playerInRound: players, order: shuffle(4) });
                 game.state = "question";
-                game.save(() => resolve(0));
+                game.save((err, data) => resolve(0));
             } else resolve(-1);
 
         });
@@ -107,23 +107,21 @@ module.exports = {
     },
 
     updateRoundSelected: function (gameID, roundID, userID, selectedState) {
-        return new Promise(resolve => {
-            Game.findOneAndUpdate(
-                {
-                    "_id": gameID,
-                    "rounds._id": roundID,
-                    "rounds.playerInRound.player": userID
-                }, {
-                    "$set": {
-                        "rounds.$.playerInRound.selected": selectedState //TODO!!!
-                    }
-            }).exec((err, data) => {
-                if (!err) resolve(0);
-                else {
-                    console.log(err);
-                    resolve(-1);
-                }
-            });
+        return new Promise(async resolve => {
+            let game = await Game.findOne({ _id: gameID });
+            if (game !== undefined) {
+                let rounds = game.rounds;
+                let i = rounds.findIndex(a => a._id + '' === roundID + '');
+                let p = rounds[i].playerInRound.find(a => a.player + '' === userID + '');
+                p.selected = selectedState;
+                game.rounds = rounds;
+                game.save((err, data) => {
+                    if (err) resolve(-1);
+                    else resolve(0);
+                });
+            } else {
+                resolve(-1);
+            }
         });
     },
 
@@ -133,10 +131,10 @@ module.exports = {
      * debug only!!!
      */
     addExUser: function () {
-        console.log("add");
+        console.log("add User");
         return new Promise(resolve => {
             bcrypt.hash('123456', saltRounds, function (err, hash) {
-                let u = new User({ name: 'Rikka', pwd: hash });
+                let u = new User({ name: 'Marwi', pwd: hash });
                 u.save((err, data) => {
                     if (err) resolve(-1);
                     else resolve(0);
@@ -166,8 +164,8 @@ module.exports = {
             'Der vom Unternehmen Hanson Robotics entwickelter humanoide Roboter "Sophia" ist der weltweit erste Roboter, der...;...eine Staatsbürgerschaft mit mehr Rechten als Menschen besitzt;ein eigenes Gewissen entwickelt hat;...durch eine Schwangerschaft einen Baby Roboter geboren hat;...den Turing-Test bestanden hat\n' +
             'Mit welchem Verfahren wurde in Irland versucht, Kühe zu einer erhöhten Milchproduktion zu bringen?;Kräftiges Einblasen von Luft in die Vagina oder den After;Lebenslanges Halten der Kühe in einem Wasserbecken;Beimischen von Wiskey in das Trinkwasser;Hypnotisieren der Kühe beim Melken\n' +
             'Durch welchen kuriosen Vorfall wurde der Japaner Kanaguri Shisō bei den Olympischen Spielen 1912 in Stockholm bekannt?;Er lief den langsamsten Marathon aller Zeiten in einer Zeit von über 54 Jahren;Er warf seinen Speer so weit, dass er außerhalb des Stadions landete;Er schossim Fußball-Halbfinale gegen Dänemark 24 Tore;Er verfuhr sich beim Segeln-Wettbewerb und landete in Polen\n' +
-            'Was kann der/die schnellste TeilnehmerIn einer seit 1969 jährlich stattflindenden Regatta in Lübeck gewinnen?;Rosarote Kunststoff-Abgüsse eines Kinderpopos auf Mahagoniplatte;Ein kleines Stück des Rumpfes der Titanic;Eine goldgelbe, maßstabsgerechte Nachbildung eines Walpenis;Ein Gals mit Meerwasser aus der Karibik+'
-        'Um die Einhaltung der Norm DIN EN 997 zu gewährleisten, muss vom Prüfer was erzeugt werden?;Kotwürste, die menschliche Fäkalien nachbilden;Ein Kilogramm verschimmelte Marmelade;Zwanzig gekaute, ausgespuckte Kaugummis;Ein erigiertes, männliches Glied aus Holz\n' +
+            'Was kann der/die schnellste TeilnehmerIn einer seit 1969 jährlich stattflindenden Regatta in Lübeck gewinnen?;Rosarote Kunststoff-Abgüsse eines Kinderpopos auf Mahagoniplatte;Ein kleines Stück des Rumpfes der Titanic;Eine goldgelbe, maßstabsgerechte Nachbildung eines Walpenis;Ein Gals mit Meerwasser aus der Karibik\n' +
+            'Um die Einhaltung der Norm DIN EN 997 zu gewährleisten, muss vom Prüfer was erzeugt werden?;Kotwürste, die menschliche Fäkalien nachbilden;Ein Kilogramm verschimmelte Marmelade;Zwanzig gekaute, ausgespuckte Kaugummis;Ein erigiertes, männliches Glied aus Holz\n' +
             'Was heißt kurioserweise "Obama ficki"?;Eine Art der Strudelwürmer;DDer Titel der niederländischern Verion von barack Obamas Biografie;Eine Nachspeise aus Mexiko;Ein Raum innerhalb des Weißen Hauses\n' +
             'Woführ ist "Morbus Kobold" in der medizinischen Fachkreisen bekannt?;Penisverletzungen bei Masturbation mittels Reinigungsgeräten;Ein Penis, der in den Körper hineinwächst,Afterverletzungen durch Einführen von Pummuckel-Figuren;Ein Armbruch mit mehr als einem Knochenbruch\n' +
             'Der Wissenschaftler Michael Norton prägt im Jahr 2009 die Bezeichnung "IKEA-Effekt" für welches Phänomen?;Selbstzusammengebaute Gegenstände erhalten höhere Wertschätzung;Erhötes Hungergefühl beim Shopping;Großer Willen zum Erlernen der schwedischen Sprache nach IKEA-Besuch;Größerer Umsatz durch erhötes Angebot geringpreisiger Produkte';
@@ -177,10 +175,10 @@ module.exports = {
             raw.forEach(q => {
                 questions.push({
                     question: q[0], answers: [
-                        { text: q[2], correct: true },
+                        { text: q[1], correct: true },
+                        { text: q[2], correct: false },
                         { text: q[3], correct: false },
                         { text: q[4], correct: false },
-                        { text: q[5], correct: false },
                     ]
                 });
             });
@@ -198,5 +196,22 @@ function csvParser(csv) {
     csv.split('\n').forEach(r => {
         ret.push(r.split(';'));
     });
+    return ret;
+}
+
+/**
+ * returns a array with number from 0 - max in a random order
+ * @param {Number} max 
+ * @returns {Array<Number>}
+ */
+function shuffle(max) {
+    let ret = [];
+    let arr = [];
+    for (let i = 0; i < max; i++) arr.push(i);
+    while (max > 0) {
+        let ran = parseInt(Math.random() * max);
+        ret.push(arr.splice(ran, 1)[0]);
+        max--;
+    }
     return ret;
 }

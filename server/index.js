@@ -17,7 +17,6 @@ const wsServer = new webSocketServer({
   httpServer: server
 });
 
-
 // I'm maintaining all active connections in this object
 const clients = new Map();
 
@@ -83,7 +82,7 @@ function manageRequest(req) {
       if (b)
         handleRequest(msg);
       else {
-        msg.data = "access denied";
+        msg.data = "403";
         sendToClient(msg) ? '' : console.log("no client with ID: " + msg.id);
       }
     });
@@ -133,6 +132,9 @@ function handleRequest(msg) {
       break;
     case 'joingame':
       joinGame(msg);
+      break;
+    case 'leavegame':
+      leaveGame(msg);
       break;
     case 'addround':
       addRound(msg);
@@ -206,9 +208,9 @@ function joinGame(msg) {
 function leaveGame(msg) {
   let c = clients.get(msg.id);
   if (c !== undefined) {
-    if(c.game!==null && c.game!==undefined)
-      updateGamePlayerList(c.game);
+    let g = c.game;
     c.game = null;
+    if(!!g) updateGamePlayerList(g);
   }
 }
 

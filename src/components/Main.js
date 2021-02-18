@@ -21,11 +21,11 @@ import Game from './Game';
  * Hauptsächlich für das Routen zuständig
  */
 const Main = () => {
-    const socketUrl = 'ws://127.0.0.1:3001';
+    const socketUrl = 'ws://'+window.location.hostname+':3001';
 
-    const loginChild = createRef();
-    const createGameChild = createRef();
-    const getGameChild = createRef();
+    const refHome = createRef();
+    const refLogin = createRef();
+    const refGame = createRef();
 
     const {
         sendMessage,
@@ -42,37 +42,46 @@ const Main = () => {
         onMessage: e => {
             let msg = new SocketCommunication();
             msg.set(e.data);
-            //setSessionId(data.id);
-            switch (msg.type) {
-                case 'sessionId':
-                    setSessionId(msg.id);
-                    console.log(getSessionId());
-                    break;
-                case 'login':
-                    console.log(msg.token);
-                    addToken(msg.token);
-                    loginChild.current.goHome();
-                    break;
-                case 'creategame':
-                    console.log("reseaved new game");
-                    createGameChild.current.goGame(msg.data._id);
-                    break;
-                case 'joingame':
-                case 'updategame':
-                    console.log("getting game");
-                    getGameChild.current.loadGame(msg.data);
-                    break;
-                case 'updateplayerlist':
-                    console.log('new player joined game');
-                    getGameChild.current.updatePlayerList(msg.data);
-                    break;
-                case 'getquestions':
-                    getGameChild.current.getQuestions(msg.data);
-                    break;
-                default:
-                    console.log(msg);
-                    break;
+            console.log(msg.data);
+            if(msg.data==="403") {
+                if(refHome.current!==undefined)
+                    refHome.current.goLogin();
+                else if(refGame.current!==undefined)
+                    refGame.current.goLogin();
+            } else {
+                switch (msg.type) {
+                    case 'sessionId':
+                        setSessionId(msg.id);
+                        console.log(getSessionId());
+                        break;
+                    case 'login':
+                        console.log(msg.token);
+                        addToken(msg.token);
+                        refLogin.current.goHome();
+                        break;
+                    case 'creategame':
+                        console.log("reseaved new game");
+                        refHome.current.goGame(msg.data._id);
+                        break;
+                    case 'joingame':
+                    case 'updategame':
+                        console.log("getting game");
+                        refGame.current.loadGame(msg.data);
+                        break;
+                    case 'updateplayerlist':
+                        console.log('new player joined game');
+                        if(refGame.current!==null)
+                            refGame.current.updatePlayerList(msg.data);
+                        break;
+                    case 'getquestions':
+                        refGame.current.getQuestions(msg.data);
+                        break;
+                    default:
+                        console.log(msg);
+                        break;
+                }
             }
+
         }
     });
 
@@ -84,23 +93,25 @@ const Main = () => {
 
     useEffect(() => {
         //TODO: sessionID wird nach reload neu generiert, aber nicht richtig gesetzt
+        if(!getToken()) {
+            if(!!refHome.current)
+                refHome.current.goLogin();
+            else if(!!refGame.current)
+                refGame.current.goLogin();
+        }
     }, []);
 
 
     return (
         <div>
-            <div>
-                <p className="debug">{"token: " + getToken()}</p>
-                <p className="debug">{"sessionID: " + getSessionId()}</p>
-            </div>
             <Router>
                 <div>
                     <Switch>
-                        <Route exact path="/"><Home send={send} ref={createGameChild}></Home></Route>
-                        <Route path="/home"><Home send={send} ref={createGameChild}></Home></Route>
-                        <Route path="/login"><Login send={send} ref={loginChild}></Login></Route>
-                        <Route exact path="/game"><Game send={send} ref={getGameChild}></Game></Route>
-                        <Route path="/game/:id"><Game send={send} ref={getGameChild}></Game></Route>
+                        <Route exact path="/"><Home send={send} ref={refHome}></Home></Route>
+                        <Route path="/home"><Home send={send} ref={refHome}></Home></Route>
+                        <Route path="/login"><Login send={send} ref={refLogin}></Login></Route>
+                        <Route exact path="/game"><Game send={send} ref={refGame}></Game></Route>
+                        <Route path="/game/:id"><Game send={send} ref={refGame}></Game></Route>
                     </Switch>
                 </div>
             </Router>

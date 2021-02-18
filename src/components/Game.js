@@ -1,9 +1,10 @@
 import queryString from 'query-string';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 import { getUser } from '../tools/connection';
 
 const Game = forwardRef((props, ref) => {
+    const history = useHistory();
 
     const WINASK = 5;
     const WINSPEC = 2;
@@ -17,11 +18,17 @@ const Game = forwardRef((props, ref) => {
     const params = useParams();
 
     const getGame = () => {
-        props.send('joingame', { id: params.id });
+        if(!params.id)
+            history.push('/home');
+        else
+            props.send('joingame', { id: params.id });
     }
 
     const addRound = () => {
         props.send('addround', { player: nextPlayer, question: nextQuestion });
+        setNextPlayer('');
+        setNextQuestion('');
+        setQuestionView(false);
     }
 
     const requestQuestions = () => {
@@ -29,13 +36,19 @@ const Game = forwardRef((props, ref) => {
     }
 
     const updateRoundSelected = s => {
-        props.send('updateroundselected', {roundID: getCurrentRound()._id, seleted: s});
+        console.log(s);
+        props.send('updateroundselected', {roundID: getCurrentRound()._id, selected: s});
     }
 
     const getCurrentRound = () => {
         if (game !== null)
             return game.rounds[game.rounds.length - 1];
         return null;
+    }
+
+    const leaveGame = () => {
+        props.send('leavegame', null);
+        history.push('/home');
     }
 
     useImperativeHandle(ref, () => ({
@@ -49,6 +62,9 @@ const Game = forwardRef((props, ref) => {
         },
         getQuestions(questions) {
             setQuestions(questions);
+        },
+        goLogin() {
+            history.push('/login');
         }
     }));
 
@@ -87,6 +103,14 @@ const Game = forwardRef((props, ref) => {
             setNextQuestion('');
         else
             setNextQuestion(e.target.id);
+    }
+
+    const isSelectedAnswer = i => {
+        return getCurrentRound().playerInRound.find(a => a.ask).selected === i;
+    }
+
+    const isSpecSelected = i => {
+        return getCurrentRound().playerInRound.find(a => a.player === getUser().id).selected === i;
     }
 
     const endRound = () => {
@@ -137,6 +161,7 @@ const Game = forwardRef((props, ref) => {
         return (
             <div>
                 <div className="buttonarray">
+                    <button onClick={leaveGame}>leave Game</button>
                     <button onClick={getGame}>reload</button>
                     {isMod() ? <button onClick={toggleQuestionView}>Select question</button> : ''}
                     {isMod() && nextPlayer !== '' && nextQuestion !== '' ? <button onClick={addRound}>Start game</button> : ''}
@@ -178,10 +203,9 @@ const Game = forwardRef((props, ref) => {
                     </div>
                     <div className="questionfield">{round.question.question}</div>
                     <div className="answersbuttons">
-                        <button disabled={!isAsk()} onClick={() => updateRoundSelected(0)}>{round.question.answers[0].text}</button>
-                        <button disabled={!isAsk()} onClick={() => updateRoundSelected(1)}>{round.question.answers[1].text}</button>
-                        <button disabled={!isAsk()} onClick={() => updateRoundSelected(2)}>{round.question.answers[2].text}</button>
-                        <button disabled={!isAsk()} onClick={() => updateRoundSelected(3)}>{round.question.answers[3].text}</button>
+                        {round.order.map(a => 
+                            <button disabled={!isAsk()} onClick={() => updateRoundSelected(a)} className={isSelectedAnswer(a)?'selected':''}>{round.question.answers[a].text}</button>
+                        )}
                     </div>
                 </div>
             );
@@ -191,8 +215,8 @@ const Game = forwardRef((props, ref) => {
     const renderSpecButtons = () => {
         return (
             <div>
-                <button className="true" onClick={() => updateRoundSelected(1)}>true</button>
-                <button className="false" onClick={() => updateRoundSelected(0)}>false</button>
+                <button className={(isSpecSelected(1)? "selected":"true")} onClick={() => updateRoundSelected(1)}>true</button>
+                <button className={(isSpecSelected(0)? "selected":"false")} onClick={() => updateRoundSelected(0)}>false</button>
             </div>
         );
     }
