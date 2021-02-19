@@ -12,7 +12,7 @@ const http = require('http');
 const { SocketCommunication } = require('./std/SocketCommunication.js');
 // Spinning the http server and the websocket server.
 const server = http.createServer();
-server.listen(webSocketsServerPort);
+server.listen(webSocketsServerPort, "0.0.0.0");
 const wsServer = new webSocketServer({
   httpServer: server
 });

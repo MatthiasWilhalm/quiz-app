@@ -38,6 +38,9 @@ const Main = () => {
         onOpen: e => {
             console.log('WebSocket Client Connected');
         },
+        onError: e => {
+            console.log('can not connect');
+        },
         share: true,
         onMessage: e => {
             let msg = new SocketCommunication();

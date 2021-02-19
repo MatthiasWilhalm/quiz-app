@@ -17,6 +17,8 @@ const Game = forwardRef((props, ref) => {
     const [questions, setQuestions] = useState([]);
     const params = useParams();
 
+    const QUESTIONPREFIX = ['A', 'B', 'C', 'D'];
+
     const getGame = () => {
         if(!params.id)
             history.push('/home');
@@ -203,8 +205,11 @@ const Game = forwardRef((props, ref) => {
                     </div>
                     <div className="questionfield">{round.question.question}</div>
                     <div className="answersbuttons">
-                        {round.order.map(a => 
-                            <button disabled={!isAsk()} onClick={() => updateRoundSelected(a)} className={isSelectedAnswer(a)?'selected':''}>{round.question.answers[a].text}</button>
+                        {round.order.map((a, i) => 
+                            <button disabled={!isAsk()} onClick={() => updateRoundSelected(a)} className={isSelectedAnswer(a)?'selected':''}>
+                                <div>{QUESTIONPREFIX[i]+")"}</div>
+                                <div>{round.question.answers[a].text}</div>
+                            </button>
                         )}
                     </div>
                 </div>

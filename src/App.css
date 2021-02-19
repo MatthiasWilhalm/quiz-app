@@ -97,6 +97,21 @@ li:hover {
   grid-template-columns: 50% 50%;
 }
 
+.answersbuttons button {
+  display: grid;
+  grid-template-columns: 10% 90%;
+}
+
+.answersbuttons button div:first-child {
+  text-align: left;
+  margin: auto;
+}
+
+.answersbuttons button div:last-child {
+  text-align: center;
+  margin: auto;
+}
+
 .questionfield {
   background-color: rgb(166, 166, 255);
   font-size: 15pt;
