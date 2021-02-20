@@ -115,6 +115,13 @@ const Game = forwardRef((props, ref) => {
         return getCurrentRound().playerInRound.find(a => a.player === getUser().id).selected === i;
     }
 
+    const isQuestionAlreadyAsked = questionID => {
+        return game.rounds.findIndex(a => {
+            console.log(a.question._id+'' === questionID+'');
+            return a.question._id+'' === questionID+'';
+        }) !== -1;
+    }
+
     const endRound = () => {
         props.send('endround', null);
     }
@@ -162,7 +169,7 @@ const Game = forwardRef((props, ref) => {
     const renderLobby = () => {
         return (
             <div>
-                <div className="buttonarray">
+                <div className="mainbuttons buttonarray">
                     <button onClick={leaveGame}>leave Game</button>
                     <button onClick={getGame}>reload</button>
                     {isMod() ? <button onClick={toggleQuestionView}>Select question</button> : ''}
@@ -172,7 +179,7 @@ const Game = forwardRef((props, ref) => {
                     <ul className="questionlist">
                         {questions.map(q =>
                             <li
-                                className={q._id === nextQuestion ? 'selected' : ''}
+                                className={(q._id === nextQuestion ? 'selected ' : '')+(isQuestionAlreadyAsked(q._id)?'graytext':'')}
                                 onClick={selectNextQuestion}
                                 id={q._id}>
                                 <div onClick={selectNextQuestion} id={q._id}>{q.question}</div>
@@ -186,7 +193,7 @@ const Game = forwardRef((props, ref) => {
                                 id={p.id}
                                 className={p.id === nextPlayer ? 'selected' : ''}>
                                 <div onClick={selectPlayerToAsk} id={p.id}>{p.name}</div>
-                                <div onClick={selectPlayerToAsk} id={p.id}>{(game !== null && p.id === game.mod ? ' -mod' : getPoints(p.id))}</div>
+                                <div onClick={selectPlayerToAsk} id={p.id}>{(game !== null && p.id === game.mod ? 'mod' : getPoints(p.id))}</div>
 
                             </li>)
                         }
@@ -200,13 +207,16 @@ const Game = forwardRef((props, ref) => {
         if (round !== null)
             return (
                 <div>
-                    <div className="buttonarray">
+                    <div className="mainbuttons buttonarray">
                         {isMod()?<button onClick={endRound}>end Round</button>:''}
                     </div>
                     <div className="questionfield">{round.question.question}</div>
                     <div className="answersbuttons">
                         {round.order.map((a, i) => 
-                            <button disabled={!isAsk()} onClick={() => updateRoundSelected(a)} className={isSelectedAnswer(a)?'selected':''}>
+                            <button 
+                                disabled={!isAsk()}
+                                onClick={() => updateRoundSelected(a)}
+                                className={isSelectedAnswer(a)?'selected':''}>
                                 <div>{QUESTIONPREFIX[i]+")"}</div>
                                 <div>{round.question.answers[a].text}</div>
                             </button>

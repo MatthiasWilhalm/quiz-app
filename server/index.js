@@ -151,6 +151,9 @@ function handleRequest(msg) {
     case 'updateroundselected':
       updateRoundSelected(msg);
       break;
+    case 'getopengames':
+      getOpenGames(msg);
+      break;
     //Add here new types
     default:
       break;
@@ -247,6 +250,17 @@ function endRound(msg) {
     });
     
   }
+}
+
+/**
+ * sends all open games from db to client
+ * @param {SocketCommunication} msg 
+ */
+function getOpenGames(msg) {
+  dbc.getOpenGames().then(data => {
+    msg.data = data;
+    sendToClient(msg);
+  });
 }
 
 /**

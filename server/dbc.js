@@ -125,6 +125,17 @@ module.exports = {
         });
     },
 
+    getOpenGames: function () {
+        return new Promise(resolve => {
+            Game.find({$or: [{state: 'lobby'}, {state: 'question'}]})
+            .populate('mod', '_id name')
+            .exec((err, data) => {
+                if (err) resolve(-1);
+                else resolve(data);
+            });
+        });
+    },
+
     // ************DEBUG Functions************
 
     /**

@@ -79,6 +79,9 @@ const Main = () => {
                     case 'getquestions':
                         refGame.current.getQuestions(msg.data);
                         break;
+                    case 'getopengames':
+                        refHome.current.setOpenGames(msg.data);
+                        break;
                     default:
                         console.log(msg);
                         break;
