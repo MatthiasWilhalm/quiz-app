@@ -24,8 +24,13 @@ const Home = forwardRef((props, ref) => {
         history.push('/login');
     }
 
-    const toggleQuestionView = () => {
+    const toggleGameListView = () => {
+        if(!viewGameList) getGameList();
         setViewGameList(!viewGameList);
+    }
+
+    const getGameList = () => {
+        props.send('getopengames', null);
     }
 
     useImperativeHandle(ref, () => ({
@@ -40,26 +45,28 @@ const Home = forwardRef((props, ref) => {
         }
     }));
 
-    useEffect(() => {
-        setTimeout(() => props.send('getopengames', null), 1000);
-    }, [])
+    // useEffect(() => {
+    //     setTimeout(() => props.send('getopengames', null), 1000);
+    // }, [])
 
     const renderGameList = () => {
-        //TODO Gamelist
         return (
             <div>
                 <div className="formlist">
-                    <button onClick={toggleQuestionView}>Menu</button>
+                    <button onClick={toggleGameListView}>Menu</button>
                 </div>
-                <ul className="gamelist"> 
-                    {gameList.map(g => 
-                        <li>
-                            <Link to={g.state!=='lobby'?'':'/game/'+g._id}>
-                                <div>{'hosted by '+g.mod.name+' // '+g.state}</div>
-                            </Link>
-                        </li>
-                    )}
-                </ul>
+                {gameList.length>0?
+                    <ul className="gamelist"> 
+                        {gameList.map(g => 
+                            <li>
+                                <Link to={g.state!=='lobby'?'':'/game/'+g._id}>
+                                    <div>{'hosted by '+g.mod.name+' // '+g.state}</div>
+                                </Link>
+                            </li>
+                        )}
+                    </ul>
+                :<div>no open games to join</div>}
+
             </div>
         );
     }
@@ -67,9 +74,9 @@ const Home = forwardRef((props, ref) => {
     const renderMenu = () => {
         return (
             <div className="formlist">
-                <p>{"Loged in as " + getUser().name}</p>
+                <p>{"Logged in as " + getUser().name}</p>
                 <button onClick={createGame}>New Game</button>
-                <button onClick={toggleQuestionView}>Join Game</button>
+                <button onClick={toggleGameListView}>Join Game</button>
                 <button onClick={logout}>Logout</button>
             </div>
         );

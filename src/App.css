@@ -63,6 +63,16 @@ li:hover {
   box-shadow: var(--main-box-shadow);
 }
 
+input {
+  height: 35px;
+  border: 0;
+  border-radius: var(--default-border-radius);
+  font-size: 15pt;
+  background-color: rgb(197, 197, 197);
+  padding-left: 10px;
+  margin-bottom: 10px;
+}
+
 .selected {
   background-color: var(--select-color);
 }
@@ -169,4 +179,17 @@ li:hover {
 .formlist p {
   text-align: center;
   font-size: 15pt;
+}
+
+.resultwindow {
+  position: fixed;
+  width: 100%;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  min-height: 35px;
+  background-color: var(--default-color);
+  box-shadow: var(--main-box-shadow);
+  text-align: center;
+  font-size: 20pt;
 }

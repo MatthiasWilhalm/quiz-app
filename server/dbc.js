@@ -66,6 +66,18 @@ module.exports = {
         });
     },
 
+    closeGame: function (id) {
+        return new Promise(async resolve => {
+            let game = await Game.findOne({_id: id});
+            if(!!game) {
+                game.state = "done";
+                game.save((err, data) => resolve(0));
+            } else {
+                resolve(-1);
+            }
+        });
+    },
+
     openRound: function (gameID, players, question) {
         return new Promise(async resolve => {
             let game = await Game.findOne({ _id: gameID });

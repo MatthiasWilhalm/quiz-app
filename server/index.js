@@ -1,12 +1,9 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const pino = require('express-pino-logger');
 const dbc = require("./dbc.js");
 const am = require("./authorizeManager.js");
 
 
 
-const webSocketsServerPort = 3001;
+const webSocketsServerPort = 5110;
 const webSocketServer = require('websocket').server;
 const http = require('http');
 const { SocketCommunication } = require('./std/SocketCommunication.js');
@@ -136,6 +133,9 @@ function handleRequest(msg) {
     case 'leavegame':
       leaveGame(msg);
       break;
+    case 'closegame':
+      closeGame(msg);
+      break;
     case 'addround':
       addRound(msg);
       break;
@@ -214,6 +214,17 @@ function leaveGame(msg) {
     let g = c.game;
     c.game = null;
     if(!!g) updateGamePlayerList(g);
+  }
+}
+
+function closeGame(msg) {
+  let client = clients.get(msg.id);
+  if(!!client && client.game!==null) {
+    dbc.closeGame(client.game).then(data => {
+      if(data===0) {
+        sendGameUpdate(client.game);
+      }
+    });
   }
 }
 

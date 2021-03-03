@@ -21,7 +21,9 @@ import Game from './Game';
  * Hauptsächlich für das Routen zuständig
  */
 const Main = () => {
-    const socketUrl = 'ws://'+window.location.hostname+':3001';
+    const NOPROXYPORT = 5110;
+    const PROXYPORT = 3002;
+    const socketUrl = 'ws://'+window.location.hostname+":"+NOPROXYPORT;
 
     const refHome = createRef();
     const refLogin = createRef();
@@ -55,10 +57,9 @@ const Main = () => {
                 switch (msg.type) {
                     case 'sessionId':
                         setSessionId(msg.id);
-                        console.log(getSessionId());
+                        //console.log(getSessionId());
                         break;
                     case 'login':
-                        console.log(msg.token);
                         addToken(msg.token);
                         refLogin.current.goHome();
                         break;
@@ -93,7 +94,6 @@ const Main = () => {
 
     const send = (type, data) => {
         let s = new SocketCommunication(type, getSessionId(), getToken(), data).getMsg();
-        console.log(JSON.parse(s));
         sendMessage(s);
     }
 

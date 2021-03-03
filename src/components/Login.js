@@ -33,10 +33,10 @@ const Login = forwardRef ((props, ref) => {
     }
 
     return (
-        <div>
+        <div className="formlist">
             <h1>Login</h1>
             <input placeholder="Name" value={name} id="name" onChange={update}></input>
-            <input placeholder="Password" value={pwd} id="pwd" onChange={update}></input>
+            <input placeholder="Password" value={pwd} id="pwd" onChange={update} type="password"></input>
             <button onClick={commit}>Send</button>
             <button onClick={check}>Check</button>
         </div>

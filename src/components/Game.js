@@ -15,6 +15,7 @@ const Game = forwardRef((props, ref) => {
     const [nextQuestion, setNextQuestion] = useState('');
     const [questionView, setQuestionView] = useState(false);
     const [questions, setQuestions] = useState([]);
+    const [showResult, setShowResult] = useState(false);
     const params = useParams();
 
     const QUESTIONPREFIX = ['A', 'B', 'C', 'D'];
@@ -38,7 +39,6 @@ const Game = forwardRef((props, ref) => {
     }
 
     const updateRoundSelected = s => {
-        console.log(s);
         props.send('updateroundselected', {roundID: getCurrentRound()._id, selected: s});
     }
 
@@ -53,14 +53,33 @@ const Game = forwardRef((props, ref) => {
         history.push('/home');
     }
 
+    const closeGame = () => {
+        props.send('closegame', null);
+    }
+
+    const updateGame = newGame => {
+        console.log(newGame);
+        if(game!==null && game.state === 'question' && newGame.state === 'lobby') {
+            setShowResult(true);
+        }
+
+        console.log('got gameupdate');
+        setGame(newGame);
+        if((newGame!==null && newGame.state==='done') || (game!==null && game.state==='done')) {
+            leaveGame();
+        }
+    }
+
+    const closeResoltWindow = () => {
+        setShowResult(false);
+    }
+
     useImperativeHandle(ref, () => ({
-        loadGame(game) {
-            console.log(game);
-            setGame(game);
+        loadGame(newGame) {
+            updateGame(newGame);
         },
         updatePlayerList(playerlist) {
             setPlayer(playerlist);
-            console.log(playerlist);
         },
         getQuestions(questions) {
             setQuestions(questions);
@@ -100,7 +119,6 @@ const Game = forwardRef((props, ref) => {
     }
 
     const selectNextQuestion = e => {
-        console.log(e.target.id);
         if (e.target.id === nextQuestion)
             setNextQuestion('');
         else
@@ -117,7 +135,6 @@ const Game = forwardRef((props, ref) => {
 
     const isQuestionAlreadyAsked = questionID => {
         return game.rounds.findIndex(a => {
-            console.log(a.question._id+'' === questionID+'');
             return a.question._id+'' === questionID+'';
         }) !== -1;
     }
@@ -166,10 +183,49 @@ const Game = forwardRef((props, ref) => {
         return ret;
     }
 
+    const isCorrect = () => {
+        if(game.rounds.length>0) {
+            const pir = game.rounds[game.rounds.length-1].playerInRound.find(p => p.player === getUser().id);
+            if(pir.ask) {
+                return pir.selected === 0;
+            } else {
+                const ask = game.rounds[game.rounds.length-1].playerInRound.find(p => p.ask)?.selected;
+                return (pir.selected === 1 && ask === 0) || (pir.selected === 0 && ask > 1);
+            }
+        }
+    }
+
+    const renderResultWindow = () => {
+        if(isAsk()) {
+            return (
+                <div className="resultwindow">
+                    {isCorrect()?'Noice':'To Bad'}
+                    <button onClick={closeResoltWindow}>close</button>
+                </div>
+            );
+        } else if(isSpec()) {
+            return (
+                <div className="resultwindow">
+                    {isCorrect()?'U guessed right':'U didn\'t guessed right'}
+                    <button onClick={closeResoltWindow}>close</button>
+                </div>
+            );
+        } else if(isMod()) {
+            return (
+                <div className="resultwindow">
+                    what ever
+                    <button onClick={closeResoltWindow}>close</button>
+                </div>
+            );
+        }
+
+    }
+
     const renderLobby = () => {
         return (
             <div>
                 <div className="mainbuttons buttonarray">
+                    {isMod()?<button onClick={closeGame}>close Game</button>:''}
                     <button onClick={leaveGame}>leave Game</button>
                     <button onClick={getGame}>reload</button>
                     {isMod() ? <button onClick={toggleQuestionView}>Select question</button> : ''}
@@ -239,6 +295,7 @@ const Game = forwardRef((props, ref) => {
     return (
         <div>
             <h1>Game</h1>
+            {showResult?renderResultWindow():''}
             {renderState()}
 
         </div>
