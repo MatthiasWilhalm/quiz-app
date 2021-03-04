@@ -1,9 +1,15 @@
 :root {
   --main-box-shadow: 3px 4px 4px -1px rgba(0,0,0,0.23);
-  --select-color: rgb(100, 189, 224);
-  --default-color: white;
+  --select-color: rgb(160, 189, 0);
+  --default-color: rgb(188, 221, 3);
   --border-color: rgb(170, 170, 170);
   --default-border-radius: 5px;
+  --default-font-family: 'Century Gothic';
+}
+
+body {
+  background-image: url('./assets/background.png');
+  font-family: var(--default-font-family);
 }
 
 .debug {
@@ -16,10 +22,13 @@ button {
   min-height: 35px;
   background-color: var(--default-color);
   border: 0;
+  font-family: var(--default-font-family);
+  font-weight: bold;
   border-radius: var(--default-border-radius);
   font-size: 15pt;
   box-shadow: var(--main-box-shadow);
   transition: background-color 100ms ease-in-out;
+  margin-bottom: 5px;
 }
 
 button:hover {
@@ -75,6 +84,15 @@ input {
 
 .selected {
   background-color: var(--select-color);
+  box-shadow: inset var(--main-box-shadow);
+}
+
+.logo {
+  width: 200px;
+  height: auto;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .playerlist {
@@ -103,7 +121,7 @@ input {
 }
 
 .gamelist {
-  position: absolute;
+  position: relative;
   top: 15%;
   width: 80%;
   left: 50%;
@@ -164,7 +182,7 @@ input {
 }
 
 .formlist {
-  position: absolute;
+  position: relative;
   display: grid;
   grid-template-columns: 100%;
   width: 40%;
@@ -179,6 +197,8 @@ input {
 .formlist p {
   text-align: center;
   font-size: 15pt;
+  color: var(--default-color);
+  font-weight: bold;
 }
 
 .resultwindow {

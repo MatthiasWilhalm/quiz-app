@@ -8,6 +8,8 @@ import {
 } from "react-router-dom";
 import { getUser, removeToken } from '../tools/connection';
 
+import logo from '../assets/temp_logo.png';
+
 
 const Home = forwardRef((props, ref) => {
     const history = useHistory();
@@ -85,7 +87,7 @@ const Home = forwardRef((props, ref) => {
     return (
         <div>
             <div>
-                <h1>Home</h1>
+                <img src={logo} alt="logo" className="logo"></img>
             </div>
             {viewGameList?renderGameList():renderMenu()}
         </div>
