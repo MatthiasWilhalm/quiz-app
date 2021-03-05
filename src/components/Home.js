@@ -62,7 +62,9 @@ const Home = forwardRef((props, ref) => {
                         {gameList.map(g => 
                             <li>
                                 <Link to={g.state!=='lobby'?'':'/game/'+g._id}>
-                                    <div>{'hosted by '+g.mod.name+' // '+g.state}</div>
+                                    <div>{'hosted by '+g.mod.name}</div>
+                                    <div>{g.connected+' online'}</div>
+                                    <div>{g.state}</div>
                                 </Link>
                             </li>
                         )}
@@ -76,9 +78,11 @@ const Home = forwardRef((props, ref) => {
     const renderMenu = () => {
         return (
             <div className="formlist">
-                <p>{"Logged in as " + getUser().name}</p>
                 <button onClick={createGame}>New Game</button>
                 <button onClick={toggleGameListView}>Join Game</button>
+                <Link to="/question">
+                    <button>Edit Questions</button>
+                </Link>
                 <button onClick={logout}>Logout</button>
             </div>
         );
@@ -86,10 +90,14 @@ const Home = forwardRef((props, ref) => {
 
     return (
         <div>
-            <div>
+            <div className="navbar">
+                <p>{"Logged in as " + getUser().name}</p>
                 <img src={logo} alt="logo" className="logo"></img>
             </div>
-            {viewGameList?renderGameList():renderMenu()}
+            <div className="content">
+                {viewGameList?renderGameList():renderMenu()}
+            </div>
+            
         </div>
     )
 });

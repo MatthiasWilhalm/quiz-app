@@ -14,6 +14,7 @@ import Home from './Home';
 import Login from './Login';
 import { SocketCommunication } from "../std/SocketCommunication";
 import Game from './Game';
+import Question from './Question';
 
 
 //const client = new W3CWebSocket('ws://127.0.0.1:3001');
@@ -28,6 +29,7 @@ const Main = () => {
     const refHome = createRef();
     const refLogin = createRef();
     const refGame = createRef();
+    const refQuestion = createRef();
 
     const {
         sendMessage,
@@ -49,9 +51,9 @@ const Main = () => {
             msg.set(e.data);
             console.log(msg.data);
             if(msg.data==="403") {
-                if(refHome.current!==undefined)
+                if(refHome?.current!==undefined)
                     refHome.current.goLogin();
-                else if(refGame.current!==undefined)
+                else if(refGame?.current!==undefined)
                     refGame.current.goLogin();
             } else {
                 switch (msg.type) {
@@ -61,7 +63,7 @@ const Main = () => {
                         break;
                     case 'login':
                         addToken(msg.token);
-                        refLogin.current.goHome();
+                        refLogin?.current.goHome();
                         break;
                     case 'creategame':
                         console.log("reseaved new game");
@@ -70,18 +72,27 @@ const Main = () => {
                     case 'joingame':
                     case 'updategame':
                         console.log("getting game");
-                        refGame.current.loadGame(msg.data);
+                        refGame?.current.loadGame(msg.data);
                         break;
                     case 'updateplayerlist':
                         console.log('new player joined game');
-                        if(refGame.current!==null)
+                        if(refGame?.current!==null)
                             refGame.current.updatePlayerList(msg.data);
                         break;
                     case 'getquestions':
-                        refGame.current.getQuestions(msg.data);
+                        refGame?.current.getQuestions(msg.data);
+                        break;
+                    case 'getquestionslist':
+                        if(refQuestion?.current!==null)
+                            refQuestion.current.getQuestions(msg.data);
+                        break;
+                    case 'updatequestion':
+                    case 'deletequestion':
+                        if(refQuestion?.current!==null)
+                            refQuestion.current.refreshQuestions();
                         break;
                     case 'getopengames':
-                        refHome.current.setOpenGames(msg.data);
+                        refHome?.current.setOpenGames(msg.data);
                         break;
                     default:
                         console.log(msg);
@@ -118,6 +129,7 @@ const Main = () => {
                         <Route path="/login"><Login send={send} ref={refLogin}></Login></Route>
                         <Route exact path="/game"><Game send={send} ref={refGame}></Game></Route>
                         <Route path="/game/:id"><Game send={send} ref={refGame}></Game></Route>
+                        <Route path="/question"><Question send={send} ref={refQuestion}></Question></Route>
                     </Switch>
                 </div>
             </Router>

@@ -148,6 +148,48 @@ module.exports = {
         });
     },
 
+    /**
+     * Question: {question, [answers]} (first one is correct)
+     * @param {*} question 
+     */
+    addQuestion: function(question) {
+        return new Promise(resolve => {
+            if(question.answers.length!==4) resolve(-1);
+            else {
+                let q = new Question(question);
+                q.save().then(data => resolve(0)).catch(err => {
+                    console.log(err);
+                    resolve(-1);
+                });
+            }
+        });
+    },
+
+    updateQuestion: function(questionId, question) {
+        return new Promise(async resolve => {
+            let q = await Question.findOne({_id: questionId});
+            if(!!q && question.answers.length===q.answers.length) {
+                q.question = question.question;
+                q.answers.map((a, i) => {
+                    a.text = question.answers[i].text;
+                    a.correct = !!question.answers[i].correct;
+                });
+                q.save().then(data => resolve(0)).catch(err => {
+                    console.log(err);
+                    resolve(-1);
+                });
+            } else resolve(-1);
+        });
+    },
+
+    deleteQuestion: function(questionId) {
+        return new Promise(resolve => {
+            Question.deleteOne({_id: questionId}).then(() => {
+                resolve(0);
+            });
+        });
+    },
+
     // ************DEBUG Functions************
 
     /**

@@ -3,6 +3,11 @@ import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import { getUser } from '../tools/connection';
 
+import logo from '../assets/temp_logo.png';
+import coin from '../assets/coin.png';
+import rounds from '../assets/rounds.png';
+import mod from '../assets/mod.png';
+
 const Game = forwardRef((props, ref) => {
     const history = useHistory();
 
@@ -163,6 +168,18 @@ const Game = forwardRef((props, ref) => {
             
     }
 
+    const getTimesPlayed = playerId => {
+        let ret = 0;
+        if(game!==null) {
+            game.rounds.forEach(r => {
+                let p = r.playerInRound.find(pr => pr.player === playerId);
+                if(!!p && p.ask)
+                    ret++;
+            });
+        }
+        return ret;
+    }
+
     const getPoints = id => {
         let ret = 0;
         if (game !== null) {
@@ -195,6 +212,28 @@ const Game = forwardRef((props, ref) => {
         }
     }
 
+    const getPlayer = () => {
+        let ret = [];
+        if(player!==null && game!==null) {
+            ret = player.filter(a => a.id+"" !== game.mod+"");
+            ret.map(a => {
+                a.points = getPoints(a.id);
+            });
+            ret.sort((a, b) => b.points - a.points);
+        }
+        console.log(ret);
+        return ret;
+    }
+
+    const getMod = () => {
+        let ret = null;
+        if(player!==null && game!==null) {
+            ret = player.find(a => a.id+"" === game.mod+"");
+        }
+        console.log(ret);
+        return ret;
+    }
+
     const renderResultWindow = () => {
         if(isAsk()) {
             return (
@@ -225,9 +264,6 @@ const Game = forwardRef((props, ref) => {
         return (
             <div>
                 <div className="mainbuttons buttonarray">
-                    {isMod()?<button onClick={closeGame}>close Game</button>:''}
-                    <button onClick={leaveGame}>leave Game</button>
-                    <button onClick={getGame}>reload</button>
                     {isMod() ? <button onClick={toggleQuestionView}>Select question</button> : ''}
                     {isMod() && nextPlayer !== '' && nextQuestion !== '' ? <button onClick={addRound}>Start game</button> : ''}
                 </div>
@@ -243,13 +279,19 @@ const Game = forwardRef((props, ref) => {
                         )}
                     </ul> :
                     <ul className="playerlist">
-                        {player.map(p =>
+                        {!!getMod()?<li id={getMod().id}>
+                            <div>{getMod().name}</div>
+                            <div></div>
+                            <div><img src={mod}></img></div>
+                        </li>:''}
+                        {getPlayer().map((p, i) =>
                             <li
                                 onClick={selectPlayerToAsk}
                                 id={p.id}
                                 className={p.id === nextPlayer ? 'selected' : ''}>
-                                <div onClick={selectPlayerToAsk} id={p.id}>{p.name}</div>
-                                <div onClick={selectPlayerToAsk} id={p.id}>{(game !== null && p.id === game.mod ? 'mod' : getPoints(p.id))}</div>
+                                <div onClick={selectPlayerToAsk} id={p.id}>{(i+1)+". "+p.name}</div>
+                                <div onClick={selectPlayerToAsk} id={p.id}>{p.points}<img src={rounds}></img></div>
+                                <div onClick={selectPlayerToAsk} id={p.id}>{p.points}<img src={coin}></img></div>
 
                             </li>)
                         }
@@ -266,17 +308,19 @@ const Game = forwardRef((props, ref) => {
                     <div className="mainbuttons buttonarray">
                         {isMod()?<button onClick={endRound}>end Round</button>:''}
                     </div>
-                    <div className="questionfield">{round.question.question}</div>
-                    <div className="answersbuttons">
-                        {round.order.map((a, i) => 
-                            <button 
-                                disabled={!isAsk()}
-                                onClick={() => updateRoundSelected(a)}
-                                className={isSelectedAnswer(a)?'selected':''}>
-                                <div>{QUESTIONPREFIX[i]+")"}</div>
-                                <div>{round.question.answers[a].text}</div>
-                            </button>
-                        )}
+                    <div className="question">
+                        <div className="questionfield">{round.question.question}</div>
+                        <div className="answersbuttons">
+                            {round.order.map((a, i) => 
+                                <button 
+                                    disabled={!isAsk()}
+                                    onClick={() => updateRoundSelected(a)}
+                                    className={isSelectedAnswer(a)?'selected':''}>
+                                    <div>{QUESTIONPREFIX[i]+")"}</div>
+                                    <div>{round.question.answers[a].text}</div>
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             );
@@ -285,18 +329,30 @@ const Game = forwardRef((props, ref) => {
 
     const renderSpecButtons = () => {
         return (
-            <div>
-                <button className={(isSpecSelected(1)? "selected":"true")} onClick={() => updateRoundSelected(1)}>true</button>
-                <button className={(isSpecSelected(0)? "selected":"false")} onClick={() => updateRoundSelected(0)}>false</button>
+            <div className="specbuttons">
+                <div>
+                    <button className={(isSpecSelected(1)? "selected":"true")} onClick={() => updateRoundSelected(1)}>true</button>
+                    <button className={(isSpecSelected(0)? "selected":"false")} onClick={() => updateRoundSelected(0)}>false</button>
+                </div>
             </div>
         );
     }
 
     return (
         <div>
-            <h1>Game</h1>
-            {showResult?renderResultWindow():''}
-            {renderState()}
+            <div className="navbar">
+            <div className="buttonlist">
+                    {isMod()?<button onClick={closeGame} className="close"></button>:''}
+                    <button onClick={leaveGame} className="leave"></button>
+                    <button onClick={getGame} className="reload"></button>
+                </div>
+                <img src={logo} alt="logo" className="logo"></img>
+            </div>
+            <div className="content">
+                {showResult?renderResultWindow():''}
+                {renderState()}
+            </div>
+
 
         </div>
     );

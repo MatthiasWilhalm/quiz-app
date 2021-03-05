@@ -140,6 +140,7 @@ function handleRequest(msg) {
       addRound(msg);
       break;
     case 'getquestions':
+      case 'getquestionslist':
       getQuestions(msg);
       break;
     case 'getquestion':
@@ -153,6 +154,15 @@ function handleRequest(msg) {
       break;
     case 'getopengames':
       getOpenGames(msg);
+      break;
+    case 'addquestion':
+      addQuestion(msg);
+      break;
+    case 'updatequestion':
+      updateQuestion(msg);
+      break;
+    case 'deletequestion':
+      deleteQuestion(msg);
       break;
     //Add here new types
     default:
@@ -269,6 +279,16 @@ function endRound(msg) {
  */
 function getOpenGames(msg) {
   dbc.getOpenGames().then(data => {
+    data = JSON.parse(JSON.stringify(data));
+    if(data!==-1) {
+      data.map(a => {
+        let gc = 0;
+        clients.forEach(c => {
+          if(c.game+'' === a._id+'') gc++;
+        });
+        a.connected = gc;
+      });
+    }
     msg.data = data;
     sendToClient(msg);
   });
@@ -287,10 +307,10 @@ function getQuestions(msg) {
 
 /**
  * sends just one spesific question
- * @param {SocketCommunication}
+ * @param {SocketCommunication} msg
  */
 function getQuestion(msg) {
-  dbc.getQuestion(msg.data.id).then(question => {
+  dbc.getQuestion(msg.data._id).then(question => {
     msg.data = question;
     sendToClient(msg);
   });
@@ -305,6 +325,45 @@ function updateRoundSelected(msg) {
   if(client!==undefined && client.game!==null) {
     dbc.updateRoundSelected(client.game, msg.data.roundID, client.user.id, msg.data.selected).then(data => {
       sendGameUpdate(client.game);
+    });
+  }
+}
+
+/**
+ * Adds a new Question in DB
+ * @param {SocketCommunication} msg 
+ */
+function addQuestion(msg) {
+  if(!!msg.data) {
+    dbc.addQuestion(msg.data).then(data => {
+      msg.data = data;
+      sendToClient(msg);
+    });
+  }
+}
+
+/**
+ * 
+ * @param {SocketCommunication} msg 
+ */
+function updateQuestion(msg) {
+  if(!!msg.data) {
+    dbc.updateQuestion(msg.data._id, msg.data).then(data => {
+      msg.data = data;
+      sendToClient(msg);
+    });
+  }
+}
+
+/**
+ * 
+ * @param {SocketCommunication} msg 
+ */
+function deleteQuestion(msg) {
+  if(!!msg.data) {
+    dbc.deleteQuestion(msg.data.id).then(data => {
+      msg.data = data;
+      sendToClient(msg);
     });
   }
 }
