@@ -13,6 +13,8 @@ const Question = forwardRef((props, ref) => {
     var [falseAnswer1, setFalseAnswer1] = useState('');
     var [falseAnswer2, setFalseAnswer2] = useState('');
     var [falseAnswer3, setFalseAnswer3] = useState('');
+    var [fileurl, setFileurl] = useState('');
+    var [filetype, setFiletype] = useState('img');
 
     useEffect(() => {
         setTimeout(getQuestionList, 500);
@@ -36,6 +38,8 @@ const Question = forwardRef((props, ref) => {
         if(currentQuestion===null || currentQuestion==='') {
             props.send('addquestion', {
                 question: editQuestion,
+                fileurl: fileurl,
+                filetype: filetype,
                 answers: [
                     {text: trueAnswer, correct: true},
                     {text: falseAnswer1},
@@ -44,8 +48,11 @@ const Question = forwardRef((props, ref) => {
                 ]
             });
         } else {
+            console.log(fileurl+" : "+filetype);
             let newQ = JSON.parse(JSON.stringify(questions.find(a => a._id === currentQuestion)));
             newQ.question = editQuestion;
+            newQ.fileurl = fileurl;
+            newQ.filetype = filetype;
             let ic = newQ.answers.findIndex(a => a.correct);
             newQ.answers[ic].text = trueAnswer;
             let f = newQ.answers.filter(a => !a.correct);
@@ -79,6 +86,8 @@ const Question = forwardRef((props, ref) => {
                 setFalseAnswer1(f[0].text);
                 setFalseAnswer2(f[1].text);
                 setFalseAnswer3(f[2].text);
+                setFileurl(q.fileurl);
+                setFiletype(q.filetype);
             }
         }
     }
@@ -91,6 +100,8 @@ const Question = forwardRef((props, ref) => {
         setFalseAnswer2('');
         setFalseAnswer3('');
         setListView(true);
+        setFileurl('');
+        setFiletype('img');
     }
 
 
@@ -107,6 +118,15 @@ const Question = forwardRef((props, ref) => {
                 <input type="text" value={falseAnswer2} onChange={e => setFalseAnswer2(e.target.value)}></input>
                 <label>False Answer 3</label>
                 <input type="text" value={falseAnswer3} onChange={e => setFalseAnswer3(e.target.value)}></input>
+                <label>File URL</label>
+                <input type="text" value={fileurl} onChange={e => setFileurl(e.target.value)}></input>
+                <label>File Type</label>
+                <select value={filetype} onChange={e => setFiletype(e.target.value)}>
+                    <option value="img">Image</option>
+                    <option value="iframe">Embedded</option>
+                    <option value="video">Video</option>
+                    <option value="audio">Audio</option>
+                </select>
                 <button onClick={sendQuestion}>Submit</button>
                 <button onClick={deleteQuestion}>Delete</button>
                 <button onClick={setToList}>Cancel</button>

@@ -17,6 +17,20 @@ const QuestionSchema = new Schema({
         type: String,
         default: ''
     },
+    fileurl: {
+        type: String,
+        default: ''
+    },
+    filetype: {
+        type: String,
+        enum: [
+            'img',
+            'iframe',
+            'video',
+            'audio'
+        ],
+        default: 'img'
+    },
     answers: [AnswerSchema]
 });
 

@@ -170,6 +170,8 @@ module.exports = {
             let q = await Question.findOne({_id: questionId});
             if(!!q && question.answers.length===q.answers.length) {
                 q.question = question.question;
+                q.fileurl  = question.fileurl;
+                q.filetype = question.filetype;
                 q.answers.map((a, i) => {
                     a.text = question.answers[i].text;
                     a.correct = !!question.answers[i].correct;

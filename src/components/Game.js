@@ -26,7 +26,7 @@ const Game = forwardRef((props, ref) => {
     const QUESTIONPREFIX = ['A', 'B', 'C', 'D'];
 
     const getGame = () => {
-        if(!params.id)
+        if (!params.id)
             history.push('/home');
         else
             props.send('joingame', { id: params.id });
@@ -44,7 +44,7 @@ const Game = forwardRef((props, ref) => {
     }
 
     const updateRoundSelected = s => {
-        props.send('updateroundselected', {roundID: getCurrentRound()._id, selected: s});
+        props.send('updateroundselected', { roundID: getCurrentRound()._id, selected: s });
     }
 
     const getCurrentRound = () => {
@@ -64,13 +64,13 @@ const Game = forwardRef((props, ref) => {
 
     const updateGame = newGame => {
         console.log(newGame);
-        if(game!==null && game.state === 'question' && newGame.state === 'lobby') {
+        if (game !== null && game.state === 'question' && newGame.state === 'lobby') {
             setShowResult(true);
         }
 
         console.log('got gameupdate');
         setGame(newGame);
-        if((newGame!==null && newGame.state==='done') || (game!==null && game.state==='done')) {
+        if ((newGame !== null && newGame.state === 'done') || (game !== null && game.state === 'done')) {
             leaveGame();
         }
     }
@@ -140,7 +140,7 @@ const Game = forwardRef((props, ref) => {
 
     const isQuestionAlreadyAsked = questionID => {
         return game.rounds.findIndex(a => {
-            return a.question._id+'' === questionID+'';
+            return a.question._id + '' === questionID + '';
         }) !== -1;
     }
 
@@ -161,19 +161,19 @@ const Game = forwardRef((props, ref) => {
             return (
                 <div>
                     {renderQuestion()}
-                    {isSpec()?renderSpecButtons():''}
+                    {isSpec() ? renderSpecButtons() : ''}
                 </div>
-                );
+            );
         }
-            
+
     }
 
     const getTimesPlayed = playerId => {
         let ret = 0;
-        if(game!==null) {
+        if (game !== null) {
             game.rounds.forEach(r => {
                 let p = r.playerInRound.find(pr => pr.player === playerId);
-                if(!!p && p.ask)
+                if (!!p && p.ask)
                     ret++;
             });
         }
@@ -201,12 +201,12 @@ const Game = forwardRef((props, ref) => {
     }
 
     const isCorrect = () => {
-        if(game.rounds.length>0) {
-            const pir = game.rounds[game.rounds.length-1].playerInRound.find(p => p.player === getUser().id);
-            if(pir.ask) {
+        if (game.rounds.length > 0) {
+            const pir = game.rounds[game.rounds.length - 1].playerInRound.find(p => p.player === getUser().id);
+            if (pir.ask) {
                 return pir.selected === 0;
             } else {
-                const ask = game.rounds[game.rounds.length-1].playerInRound.find(p => p.ask)?.selected;
+                const ask = game.rounds[game.rounds.length - 1].playerInRound.find(p => p.ask)?.selected;
                 return (pir.selected === 1 && ask === 0) || (pir.selected === 0 && ask > 1);
             }
         }
@@ -214,10 +214,11 @@ const Game = forwardRef((props, ref) => {
 
     const getPlayer = () => {
         let ret = [];
-        if(player!==null && game!==null) {
-            ret = player.filter(a => a.id+"" !== game.mod+"");
+        if (player !== null && game !== null) {
+            ret = player.filter(a => a.id + "" !== game.mod + "");
             ret.map(a => {
                 a.points = getPoints(a.id);
+                a.rounds = getTimesPlayed(a.id);
             });
             ret.sort((a, b) => b.points - a.points);
         }
@@ -227,33 +228,84 @@ const Game = forwardRef((props, ref) => {
 
     const getMod = () => {
         let ret = null;
-        if(player!==null && game!==null) {
-            ret = player.find(a => a.id+"" === game.mod+"");
+        if (player !== null && game !== null) {
+            ret = player.find(a => a.id + "" === game.mod + "");
         }
         console.log(ret);
         return ret;
     }
 
+
+    const hasFile = round => {
+        return round.question.fileurl!=='' && !!round.question.fileurl;
+    }
+
+    const renderFile = round => {
+        if(hasFile(round)) {
+            switch (round.question.filetype) {
+                case 'img':
+                    return (
+                        <div className="questionfile">
+                            <img src={round.question.fileurl}></img>
+                        </div>
+                    );
+                case 'audio':
+                    return (
+                        <div className="questionfile">
+                            <audio src={round.question.fileurl} controls></audio>
+                        </div>
+                    );
+                case 'video':
+                    return (
+                        <div className="questionfile">
+                            <video src={round.question.fileurl} controls></video>
+                        </div>
+                    );
+                case 'iframe':
+                    return (
+                        <div className="questionfile">
+                            <iframe 
+                                width="500"
+                                height="300"
+                                src={round.question.fileurl}
+                                frameborder="0"
+                                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowfullscreen>
+                            </iframe>
+                        </div>
+                    );
+                default:
+                    return null;
+            }
+        } else return null;
+    }
+
     const renderResultWindow = () => {
-        if(isAsk()) {
+        if (isAsk()) {
             return (
-                <div className="resultwindow">
-                    {isCorrect()?'Noice':'To Bad'}
-                    <button onClick={closeResoltWindow}>close</button>
+                <div className="windowbg">
+                    <div className="resultwindow">
+                        <h1>{isCorrect() ? 'Noice' : 'To Bad'}</h1>
+                        <button onClick={closeResoltWindow}>close</button>
+                    </div>
                 </div>
             );
-        } else if(isSpec()) {
+        } else if (isSpec()) {
             return (
-                <div className="resultwindow">
-                    {isCorrect()?'U guessed right':'U didn\'t guessed right'}
-                    <button onClick={closeResoltWindow}>close</button>
+                <div className="windowbg">
+                    <div className="resultwindow">
+                        <h1>{isCorrect() ? 'U guessed right' : 'U didn\'t guessed right'}</h1>
+                        <button onClick={closeResoltWindow}>close</button>
+                    </div>
                 </div>
             );
-        } else if(isMod()) {
+        } else if (isMod()) {
             return (
-                <div className="resultwindow">
-                    what ever
-                    <button onClick={closeResoltWindow}>close</button>
+                <div className="windowbg">
+                    <div className="resultwindow">
+                        <h1>Round ended</h1>
+                        <button onClick={closeResoltWindow}>close</button>
+                    </div>
                 </div>
             );
         }
@@ -271,7 +323,7 @@ const Game = forwardRef((props, ref) => {
                     <ul className="questionlist">
                         {questions.map(q =>
                             <li
-                                className={(q._id === nextQuestion ? 'selected ' : '')+(isQuestionAlreadyAsked(q._id)?'graytext':'')}
+                                className={(q._id === nextQuestion ? 'selected ' : '') + (isQuestionAlreadyAsked(q._id) ? 'graytext' : '')}
                                 onClick={selectNextQuestion}
                                 id={q._id}>
                                 <div onClick={selectNextQuestion} id={q._id}>{q.question}</div>
@@ -279,18 +331,18 @@ const Game = forwardRef((props, ref) => {
                         )}
                     </ul> :
                     <ul className="playerlist">
-                        {!!getMod()?<li id={getMod().id}>
+                        {!!getMod() ? <li id={getMod().id}>
                             <div>{getMod().name}</div>
                             <div></div>
                             <div><img src={mod}></img></div>
-                        </li>:''}
+                        </li> : ''}
                         {getPlayer().map((p, i) =>
                             <li
                                 onClick={selectPlayerToAsk}
                                 id={p.id}
                                 className={p.id === nextPlayer ? 'selected' : ''}>
-                                <div onClick={selectPlayerToAsk} id={p.id}>{(i+1)+". "+p.name}</div>
-                                <div onClick={selectPlayerToAsk} id={p.id}>{p.points}<img src={rounds}></img></div>
+                                <div onClick={selectPlayerToAsk} id={p.id}>{(i + 1) + ". " + p.name}</div>
+                                <div onClick={selectPlayerToAsk} id={p.id}>{p.rounds}<img src={rounds}></img></div>
                                 <div onClick={selectPlayerToAsk} id={p.id}>{p.points}<img src={coin}></img></div>
 
                             </li>)
@@ -306,17 +358,18 @@ const Game = forwardRef((props, ref) => {
             return (
                 <div>
                     <div className="mainbuttons buttonarray">
-                        {isMod()?<button onClick={endRound}>end Round</button>:''}
+                        {isMod() ? <button onClick={endRound}>end Round</button> : ''}
                     </div>
-                    <div className="question">
+                    {renderFile(round)}
+                    <div className={"question"+(hasFile(round)?'':' questionnofile')}>
                         <div className="questionfield">{round.question.question}</div>
                         <div className="answersbuttons">
-                            {round.order.map((a, i) => 
-                                <button 
+                            {round.order.map((a, i) =>
+                                <button
                                     disabled={!isAsk()}
                                     onClick={() => updateRoundSelected(a)}
-                                    className={isSelectedAnswer(a)?'selected':''}>
-                                    <div>{QUESTIONPREFIX[i]+")"}</div>
+                                    className={isSelectedAnswer(a) ? 'selected' : ''}>
+                                    <div>{QUESTIONPREFIX[i] + ")"}</div>
                                     <div>{round.question.answers[a].text}</div>
                                 </button>
                             )}
@@ -329,10 +382,10 @@ const Game = forwardRef((props, ref) => {
 
     const renderSpecButtons = () => {
         return (
-            <div className="specbuttons">
+            <div className={"specbuttons"+(hasFile(getCurrentRound())?'':' questionnofile')}>
                 <div>
-                    <button className={(isSpecSelected(1)? "selected":"true")} onClick={() => updateRoundSelected(1)}>true</button>
-                    <button className={(isSpecSelected(0)? "selected":"false")} onClick={() => updateRoundSelected(0)}>false</button>
+                    <button className={(isSpecSelected(1) ? "selected" : "true")} onClick={() => updateRoundSelected(1)}>true</button>
+                    <button className={(isSpecSelected(0) ? "selected" : "false")} onClick={() => updateRoundSelected(0)}>false</button>
                 </div>
             </div>
         );
@@ -341,15 +394,15 @@ const Game = forwardRef((props, ref) => {
     return (
         <div>
             <div className="navbar">
-            <div className="buttonlist">
-                    {isMod()?<button onClick={closeGame} className="close"></button>:''}
+                <div className="buttonlist">
+                    {isMod() ? <button onClick={closeGame} className="close"></button> : ''}
                     <button onClick={leaveGame} className="leave"></button>
                     <button onClick={getGame} className="reload"></button>
                 </div>
                 <img src={logo} alt="logo" className="logo"></img>
             </div>
             <div className="content">
-                {showResult?renderResultWindow():''}
+                {showResult ? renderResultWindow() : ''}
                 {renderState()}
             </div>
 
