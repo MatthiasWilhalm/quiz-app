@@ -73,6 +73,8 @@ function manageRequest(req) {
     console.log('try to loggin in');
     login(msg);
     //request that needs a token to access
+  } else if(msg.type === 'register') {
+    register(msg);
   } else {
     am.verifyWsToken(msg.token).then(b => {
       //b===true we have access
@@ -104,6 +106,16 @@ function login(msg) {
 }
 
 /**
+ * Registers a new user
+ * @param {SocketCommunication} msg 
+ */
+function register(msg) {
+  dbc.register(msg.data.name, msg.data.pwd).then(data => {
+    login(msg);
+  });
+}
+
+/**
  * Takes the tokendata and resyncs it with the clients array
  * @param {SocketCommunication} msg 
  */
@@ -123,6 +135,9 @@ function handleRequest(msg) {
   switch (msg.type) {
     case 'sec':
       checkAccess(msg);
+      break;
+    case 'updateuser':
+      updateUser(msg);
       break;
     case 'creategame':
       createGame(msg);
@@ -152,6 +167,9 @@ function handleRequest(msg) {
     case 'updateroundselected':
       updateRoundSelected(msg);
       break;
+    case 'setjoker':
+      setJoker(msg);
+      break;
     case 'getopengames':
       getOpenGames(msg);
       break;
@@ -177,6 +195,22 @@ function handleRequest(msg) {
 function checkAccess(msg) {
   msg.data = "top secret";
   sendToClient(msg) ? '' : console.log("no client with ID: " + msg.id);
+}
+
+/**
+ * 
+ * @param {SocketCommunication} msg 
+ */
+function updateUser(msg) {
+  let c = clients.get(msg.id);
+  if (c !== undefined) {
+    let pwd = msg.data.pwd===undefined || msg.data.pwd===null || msg.data.pwd===''?undefined:msg.data.pwd;
+    dbc.updateUser(c.user.id, msg.data.name, pwd).then(data => {
+      msg.data = data;
+      sendToClient(msg);
+    });
+  }
+  
 }
 
 /**
@@ -324,6 +358,19 @@ function updateRoundSelected(msg) {
   let client = clients.get(msg.id);
   if(client!==undefined && client.game!==null) {
     dbc.updateRoundSelected(client.game, msg.data.roundID, client.user.id, msg.data.selected).then(data => {
+      sendGameUpdate(client.game);
+    });
+  }
+}
+
+/**
+ * Sets jokerdata
+ * @param {SocketCommunication} msg 
+ */
+function setJoker(msg) {
+  let client = clients.get(msg.id);
+  if(client!==undefined && client.game!==null) {
+    dbc.setJoker(client.game, msg.data.roundId, msg.data.jokertype).then(data => {
       sendGameUpdate(client.game);
     });
   }

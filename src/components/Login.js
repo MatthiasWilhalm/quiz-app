@@ -7,6 +7,8 @@ const Login = forwardRef ((props, ref) => {
     var [name, setName] = useState('');
     var [pwd, setPwd] = useState('');
 
+    const [wrong, setWrong] = useState(false);
+
     console.log(ref);
 
     const update = e => {
@@ -19,6 +21,9 @@ const Login = forwardRef ((props, ref) => {
     useImperativeHandle(ref, () => ({
         goHome () {
             history.push('/home');
+        },
+        wrong () {
+            setWrong(true);
         }
     }));
 
@@ -32,13 +37,27 @@ const Login = forwardRef ((props, ref) => {
         //checkAccess(client.current);
     }
 
+    const register = () => {
+        props.send('register', {name: name, pwd: pwd});
+    }
+
+    /**
+     * 
+     * @param {KeyboardEvent} k 
+     */
+    const keylistener = k => {
+        if(k.key==='Enter')
+            commit();
+    }
+
     return (
         <div className="formlist">
             <h1>Login</h1>
-            <input placeholder="Name" value={name} id="name" onChange={update}></input>
-            <input placeholder="Password" value={pwd} id="pwd" onChange={update} type="password"></input>
-            <button onClick={commit}>Send</button>
-            <button onClick={check}>Check</button>
+            <input placeholder="Name" value={name} id="name" onChange={update} onKeyUp={keylistener}></input>
+            <input placeholder="Password" value={pwd} id="pwd" onChange={update} type="password" onKeyUp={keylistener}></input>
+            {wrong?<p>Wrong Username or Password</p>:''}
+            <button onClick={commit}>Login</button>
+            <button onClick={register}>Register</button>
         </div>
     )
 });

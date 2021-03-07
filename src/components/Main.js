@@ -51,9 +51,9 @@ const Main = () => {
             msg.set(e.data);
             console.log(msg.data);
             if(msg.data==="403") {
-                if(refHome?.current!==undefined)
+                if(refHome?.current!==null && refHome?.current!==undefined)
                     refHome.current.goLogin();
-                else if(refGame?.current!==undefined)
+                else if(refGame?.current!==null && refGame?.current!==undefined)
                     refGame.current.goLogin();
             } else {
                 switch (msg.type) {
@@ -62,8 +62,12 @@ const Main = () => {
                         //console.log(getSessionId());
                         break;
                     case 'login':
-                        addToken(msg.token);
-                        refLogin?.current.goHome();
+                        if(msg.token!=='' && !!msg.token) {
+                            addToken(msg.token);
+                            refLogin?.current.goHome();
+                        } else {
+                            refLogin?.current.wrong();
+                        }
                         break;
                     case 'creategame':
                         console.log("reseaved new game");

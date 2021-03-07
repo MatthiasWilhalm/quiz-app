@@ -22,6 +22,18 @@ const Round = new Schema({
         ref: 'question',
         default: null
     },
+    jokertype: {
+        type: String,
+        enum: [
+            'none',
+            'fiftyfifty'
+        ],
+        default: 'none'
+    },
+    jokerdata: {
+        type: Object,
+        default: null
+    },
     order: [{
         type: Number
     }],

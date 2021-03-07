@@ -41,6 +41,42 @@ module.exports = {
         });
     },
 
+    register: function (name, pwd) {
+        return new Promise(resolve => {
+            bcrypt.hash(pwd, saltRounds, function (err, hash) {
+                let u = new User({ name: name, pwd: hash });
+                u.save((err, data) => {
+                    if (err) resolve(-1);
+                    else resolve(0);
+                });
+            });
+        });
+    },
+
+    updateUser: function (id, name, pwd) {
+        return new Promise(async resolve => {
+            let user = await User.findOne({ _id: id });
+            if(!!user) {
+                user.name = name;
+                if(pwd!==undefined) {
+                    bcrypt.hash(pwd, saltRounds, function (err, hash) {
+                        user.pwd = hash;
+                        user.save((err, data) => {
+                            if (err) resolve(-1);
+                            else resolve(0);
+                        });
+                    });
+                }
+                else {
+                    user.save((err, data) => {
+                        if (err) resolve(-1);
+                        else resolve(0);
+                    });
+                }
+            } else resolve(-1);
+        });
+    },
+
     createGame: function (modId) {
         return new Promise(resolve => {
             let game = new Game();
@@ -56,7 +92,7 @@ module.exports = {
         return new Promise(resolve => {
             Game.findOne({ _id: id })
                 .populate('rounds')
-                .populate('rounds.playerpoints')
+                .populate('rounds.playerInRound')
                 .populate('rounds.question')
                 .populate('rounds.question.answers')
                 .exec((err, data) => {
@@ -133,6 +169,29 @@ module.exports = {
                 });
             } else {
                 resolve(-1);
+            }
+        });
+    },
+
+    setJoker: function (gameID, roundID, jokertype) {
+        return new Promise(async resolve => {
+            let game = await Game.findOne({ _id: gameID });
+            if(!!game) {
+                let rounds = game.rounds;
+                let i = rounds.findIndex(a => a._id + '' === roundID + '');
+                if(i!==-1) {
+                    rounds[i].jokertype = jokertype;
+                    if(jokertype==='fiftyfifty') {
+                        let jokerdata = shuffle(3);
+                        jokerdata.pop();
+                        rounds[i].jokerdata = jokerdata;
+                    }
+                    //add here logic for additional jokers
+                }
+                game.save((err, data) => {
+                    if (err) resolve(-1);
+                    else resolve(0);
+                });
             }
         });
     },

@@ -108,7 +108,7 @@ textarea {
 
 .playerlist li {
   display: grid;
-  grid-template-columns: 80% 10% 10%;
+  grid-template-columns: 60% 20% 10% 10%;
   border-radius: 0;
   height: 50px;
   margin-bottom: 5px;
@@ -121,6 +121,11 @@ textarea {
   margin-bottom: auto;
 }
 
+.playerlist li .joker img {
+  width: 50px;
+  height: auto;
+}
+
 .playerlist li div img {
   width: 20px;
   height: auto;
@@ -128,6 +133,13 @@ textarea {
 
 .playerlist li div:last-child {
   text-align: right;
+}
+
+.guesslist {
+  top: 150px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 230px;
 }
 
 .questionlist {
@@ -325,6 +337,10 @@ textarea {
 
 .false {
   background-color: red;
+}
+
+.notdef {
+  background-color: gray;
 }
 
 .leave {

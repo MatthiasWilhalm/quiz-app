@@ -7,6 +7,7 @@ import logo from '../assets/temp_logo.png';
 import coin from '../assets/coin.png';
 import rounds from '../assets/rounds.png';
 import mod from '../assets/mod.png';
+import fficon from '../assets/fiftyfifty.png'
 
 const Game = forwardRef((props, ref) => {
     const history = useHistory();
@@ -148,6 +149,27 @@ const Game = forwardRef((props, ref) => {
         props.send('endround', null);
     }
 
+    /**
+     * 
+     * @param {InputEvent} e 
+     */
+    const requestJoker = e => {
+        props.send('setjoker', {roundId: getCurrentRound()._id, jokertype: e.target.id});
+    }
+
+    const hasJokerBeenUsed = (name, userId) => {
+        let ret = false;
+        let currentAsk = userId || getCurrentRound().playerInRound.find(a => a.ask)?.player;
+        if(!!currentAsk) {
+            game.rounds.forEach(r => {
+                if(r.jokertype===name) {
+                    ret = ret || r.playerInRound.find(a => a.player+'' === currentAsk+'' && a.ask);
+                }
+            });
+        }
+        return ret;
+    }
+
     const toggleQuestionView = () => {
         setQuestionView(!questionView);
         if (!questionView)
@@ -222,7 +244,22 @@ const Game = forwardRef((props, ref) => {
             });
             ret.sort((a, b) => b.points - a.points);
         }
-        console.log(ret);
+        return ret;
+    }
+
+    const getSpecs = () => {
+        let ret = [];
+        getCurrentRound().playerInRound.forEach(a => {
+            if(!a.ask && game.mod+"" !== a.player+"") {
+                let spec = {};
+                spec.id = a.id;
+                let p = player.find(b => b.id+"" === a.player+"");
+                if(!!p) spec.name = p.name;
+                spec.selected = a.selected;
+                ret.push(spec);
+            }
+
+        });
         return ret;
     }
 
@@ -231,7 +268,6 @@ const Game = forwardRef((props, ref) => {
         if (player !== null && game !== null) {
             ret = player.find(a => a.id + "" === game.mod + "");
         }
-        console.log(ret);
         return ret;
     }
 
@@ -334,6 +370,7 @@ const Game = forwardRef((props, ref) => {
                         {!!getMod() ? <li id={getMod().id}>
                             <div>{getMod().name}</div>
                             <div></div>
+                            <div></div>
                             <div><img src={mod}></img></div>
                         </li> : ''}
                         {getPlayer().map((p, i) =>
@@ -342,6 +379,7 @@ const Game = forwardRef((props, ref) => {
                                 id={p.id}
                                 className={p.id === nextPlayer ? 'selected' : ''}>
                                 <div onClick={selectPlayerToAsk} id={p.id}>{(i + 1) + ". " + p.name}</div>
+                                <div className="joker">{hasJokerBeenUsed('fiftyfifty', p.id)?'':<img src={fficon}></img>}</div>
                                 <div onClick={selectPlayerToAsk} id={p.id}>{p.rounds}<img src={rounds}></img></div>
                                 <div onClick={selectPlayerToAsk} id={p.id}>{p.points}<img src={coin}></img></div>
 
@@ -359,25 +397,59 @@ const Game = forwardRef((props, ref) => {
                 <div>
                     <div className="mainbuttons buttonarray">
                         {isMod() ? <button onClick={endRound}>end Round</button> : ''}
+                        {(isMod() && !hasJokerBeenUsed('fiftyfifty')) ? <button onClick={requestJoker} id="fiftyfifty">50:50</button> : ''}
                     </div>
                     {renderFile(round)}
                     <div className={"question"+(hasFile(round)?'':' questionnofile')}>
                         <div className="questionfield">{round.question.question}</div>
                         <div className="answersbuttons">
                             {round.order.map((a, i) =>
-                                <button
-                                    disabled={!isAsk()}
-                                    onClick={() => updateRoundSelected(a)}
-                                    className={isSelectedAnswer(a) ? 'selected' : ''}>
-                                    <div>{QUESTIONPREFIX[i] + ")"}</div>
-                                    <div>{round.question.answers[a].text}</div>
-                                </button>
+                                renderAnswerButton(a, i, round.question.answers[a].text)
                             )}
                         </div>
                     </div>
+                    {isMod()?renderGuessList():''}
                 </div>
             );
         return null;
+    }
+
+    const renderGuessList = () => {
+        return (
+            <ul className="playerlist guesslist">
+                {getSpecs().map(a => 
+                    <li className={a.selected===0?'false':(a.selected===1?'true':'notdef')}>
+                        <div>{a.name}</div>
+                        <div></div>
+                        <div></div>
+                        <div>{a.selected===0?'false':(a.selected===1?'true':'-')}</div>
+                    </li>
+                )}
+            </ul>
+        );
+    }
+
+    const renderAnswerButton = (a, i, text) => {
+        if(getCurrentRound().jokertype==='fiftyfifty') {
+            const toHide = getCurrentRound().jokerdata.findIndex(d => d+1 === a)!==-1;
+            return (
+                <button
+                    disabled={!isAsk() || toHide}
+                    onClick={() => updateRoundSelected(a)}
+                    className={isSelectedAnswer(a) ? 'selected' : ''}>
+                    <div>{QUESTIONPREFIX[i] + ")"}</div>
+                    <div>{toHide?'':text}</div>
+                </button>
+            );
+        } else return (
+            <button
+                disabled={!isAsk()}
+                onClick={() => updateRoundSelected(a)}
+                className={isSelectedAnswer(a) ? 'selected' : ''}>
+                <div>{QUESTIONPREFIX[i] + ")"}</div>
+                <div>{text}</div>
+            </button>
+        );
     }
 
     const renderSpecButtons = () => {
