@@ -76,7 +76,7 @@ const Game = forwardRef((props, ref) => {
         }
     }
 
-    const closeResoltWindow = () => {
+    const closeResultWindow = () => {
         setShowResult(false);
     }
 
@@ -229,7 +229,7 @@ const Game = forwardRef((props, ref) => {
                 return pir.selected === 0;
             } else {
                 const ask = game.rounds[game.rounds.length - 1].playerInRound.find(p => p.ask)?.selected;
-                return (pir.selected === 1 && ask === 0) || (pir.selected === 0 && ask > 1);
+                return (pir.selected === 1 && ask === 0) || (pir.selected === 0 && ask >= 1);
             }
         }
     }
@@ -263,12 +263,29 @@ const Game = forwardRef((props, ref) => {
         return ret;
     }
 
+    const getPlayerToAsk = () => {
+        let pl = getCurrentRound().playerInRound.find(a => a.ask);
+        let ret = {};
+        ret.id = pl.id;
+        let p = player.find(b => b.id+"" === pl.player+"");
+        if(!!p) {
+            ret.name = p.name;
+            ret.selected = p.selected;
+        } 
+        return ret;
+    }
+
     const getMod = () => {
         let ret = null;
         if (player !== null && game !== null) {
             ret = player.find(a => a.id + "" === game.mod + "");
         }
         return ret;
+    }
+
+    const getCorrectAnswer = round => {
+        console.log(round);
+        return round?.question.answers.find(a => a.correct);
     }
 
 
@@ -322,7 +339,9 @@ const Game = forwardRef((props, ref) => {
                 <div className="windowbg">
                     <div className="resultwindow">
                         <h1>{isCorrect() ? 'Noice' : 'To Bad'}</h1>
-                        <button onClick={closeResoltWindow}>close</button>
+                        <p>Right Answer:</p>
+                        <p>{getCorrectAnswer(getCurrentRound())?.text}</p>
+                        <button onClick={closeResultWindow}>close</button>
                     </div>
                 </div>
             );
@@ -331,7 +350,9 @@ const Game = forwardRef((props, ref) => {
                 <div className="windowbg">
                     <div className="resultwindow">
                         <h1>{isCorrect() ? 'U guessed right' : 'U didn\'t guessed right'}</h1>
-                        <button onClick={closeResoltWindow}>close</button>
+                        <p>Right Answer:</p>
+                        <p>{getCorrectAnswer(getCurrentRound())?.text}</p>
+                        <button onClick={closeResultWindow}>close</button>
                     </div>
                 </div>
             );
@@ -340,7 +361,9 @@ const Game = forwardRef((props, ref) => {
                 <div className="windowbg">
                     <div className="resultwindow">
                         <h1>Round ended</h1>
-                        <button onClick={closeResoltWindow}>close</button>
+                        <p>Right Answer:</p>
+                        <p>{getCorrectAnswer(getCurrentRound())?.text}</p>
+                        <button onClick={closeResultWindow}>close</button>
                     </div>
                 </div>
             );
@@ -392,6 +415,7 @@ const Game = forwardRef((props, ref) => {
 
     const renderQuestion = () => {
         let round = getCurrentRound();
+        let askedPlayer = getPlayerToAsk();
         if (round !== null)
             return (
                 <div>
@@ -401,6 +425,7 @@ const Game = forwardRef((props, ref) => {
                     </div>
                     {renderFile(round)}
                     <div className={"question"+(hasFile(round)?'':' questionnofile')}>
+                        <p className="currentplayer">{askedPlayer.name+"\'s turn"}</p>
                         <div className="questionfield">{round.question.question}</div>
                         <div className="answersbuttons">
                             {round.order.map((a, i) =>

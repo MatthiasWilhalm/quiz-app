@@ -61,6 +61,7 @@ const Question = forwardRef((props, ref) => {
             f[2].text = falseAnswer3;
             props.send('updatequestion', newQ);
         }
+        getQuestionList();
         setToList();
     }
 
@@ -128,7 +129,7 @@ const Question = forwardRef((props, ref) => {
                     <option value="audio">Audio</option>
                 </select>
                 <button onClick={sendQuestion}>Submit</button>
-                <button onClick={deleteQuestion}>Delete</button>
+                {!!currentQuestion?<button onClick={deleteQuestion}>Delete</button>:""}
                 <button onClick={setToList}>Cancel</button>
             </div>
         );

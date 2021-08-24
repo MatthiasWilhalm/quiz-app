@@ -109,14 +109,14 @@ const Home = forwardRef((props, ref) => {
 
     const renderMenu = () => {
         return (
-            <div className="formlist">
-                <button onClick={createGame}>New Game</button>
-                <button onClick={toggleGameListView}>Join Game</button>
+            <div className="mainmenu">
+                <button onClick={toggleGameListView} className="triple primary-button">Join Game</button>
+                <button onClick={createGame} className="double-r primary-button">New Game</button>
                 <Link to="/question">
-                    <button>Edit Questions</button>
+                    <button>Question List</button>
                 </Link>
-                <button onClick={() => setViewMode('edit')}>Edit Userdata</button>
                 <button onClick={logout}>Logout</button>
+                <button onClick={() => setViewMode('edit')}>Edit Userdata</button>
             </div>
         );
     }
