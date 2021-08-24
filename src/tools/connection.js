@@ -45,8 +45,9 @@ export function getSessionId() {
  */
 export function getUser() {
     let token = localStorage.getItem('token');
-    if(token===null || token===undefined || token==='') return {name: '', id: ''};
-    return jwt.decode(token).user;
+    let ret = jwt.decode(token);
+    if(!ret) return {name: '', id: ''};
+    return ret.user;
 }
 
 export function login(send, name, pwd) {

@@ -80,6 +80,7 @@ module.exports = {
     if(token===undefined || token===null || token==='')
       return null;
     const user = jwt.decode(token);
+    if(!user) return null;
     return user.user;
   }
 

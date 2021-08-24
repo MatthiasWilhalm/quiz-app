@@ -48,6 +48,12 @@ const Home = forwardRef((props, ref) => {
             
     }
 
+    useEffect(() => {
+        let user = getUser();
+        if(user.name === '' && user.id === '')
+            history.push('/login');
+    }, []);
+
     useImperativeHandle(ref, () => ({
         goGame(id) {
             history.push('/game/' + id);
