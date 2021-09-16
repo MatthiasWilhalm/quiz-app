@@ -390,12 +390,14 @@ const Game = forwardRef((props, ref) => {
                         )}
                     </ul> :
                     <ul className="playerlist">
-                        {!!getMod() ? <li id={getMod().id}>
-                            <div>{getMod().name}</div>
-                            <div></div>
-                            <div></div>
-                            <div><img src={mod}></img></div>
-                        </li> : ''}
+                        {!!getMod()?
+                            <li id={getMod().id} className="mod-list-element">
+                                <div>{getMod().name}</div>
+                                <div></div>
+                                <div></div>
+                                <div><img src={mod}></img></div>
+                            </li>
+                        :''}
                         {getPlayer().map((p, i) =>
                             <li
                                 onClick={selectPlayerToAsk}

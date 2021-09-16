@@ -2,6 +2,7 @@
   --main-box-shadow: 3px 4px 4px -1px rgba(0,0,0,0.23);
   --select-color: rgb(160, 189, 0);
   --default-color: rgb(188, 221, 3);
+  --mod-color: rgb(216, 148, 2);
   --border-color: rgb(170, 170, 170);
   --default-border-radius: 5px;
   --default-font-family: 'Century Gothic';
@@ -106,6 +107,18 @@ textarea {
   width: 70%;
   left: 50%;
   transform: translateX(-50%);
+}
+
+.mod-list-element {
+  background-color: var(--mod-color);
+  border: none;
+  height: 20px !important;
+}
+
+.mod-list-element:hover {
+  transform: translate(0px, 0px) !important;
+  box-shadow: none !important;
+  cursor: default !important;
 }
 
 .playerlist li {
@@ -264,6 +277,7 @@ textarea {
 .mainbuttons {
   left: 50%;
   transform: translateX(-50%);
+  width: fit-content;
 }
 
 .answersbuttons {
